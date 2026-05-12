@@ -1,8 +1,12 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { AuthGuard } from '@/components/auth-guard';
 import { Topbar } from '@/components/topbar';
 import { Footer } from '@/components/footer';
+import { CLUSTER_MAP } from '@/lib/map-data';
+
+const LeafletMap = dynamic(() => import('@/components/leaflet-map'), { ssr: false });
 
 export default function ClusterMapPage() {
   return (
@@ -13,11 +17,8 @@ export default function ClusterMapPage() {
           <h2>IGIM Cluster Route Map</h2>
           <p className="muted">Cluster beat map for grouped execution planning.</p>
         </div>
-        <div className="map-frame" style={{ marginTop: '18px' }}>
-          <iframe
-            src="/maps/raw-clustered-route-map.html"
-            title="IGIM Cluster Route Map"
-          />
+        <div style={{ marginTop: 18, height: '75vh', borderRadius: 12, overflow: 'hidden' }}>
+          <LeafletMap config={CLUSTER_MAP} height="100%" />
         </div>
       </div>
       <Footer />
