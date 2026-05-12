@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_d1065921d3ea1d47c39b97053c4169b4 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+<div style="position: fixed; bottom: 20px; left: 20px; width: 520px; z-index:9999;
+background:white; border:2px solid #555; border-radius:8px; padding:10px; font-size:13px;
+box-shadow:0 2px 10px rgba(0,0,0,0.2); max-height: 80vh; overflow:auto;">
+<b>Clustered Route Plan from Exact Hosur Point</b><br>
+Green = South / South-West Beat<br>
+Blue = Central / West Beat<br>
+Purple = North / North-East Beat<br><br>
+<b>Cluster A - South / South-West Beat</b><br><table style='width:100%; border-collapse:collapse;'><tr><td>1. Onnalvadi</td><td style='text-align:right'>7.8 km</td><td style='text-align:right'>17 min</td></tr><tr><td>2. Thorapalli Agraharam</td><td style='text-align:right'>2.8 km</td><td style='text-align:right'>6 min</td></tr><tr><td>3. Achettipalli</td><td style='text-align:right'>7.3 km</td><td style='text-align:right'>16 min</td></tr></table>Total: <b>17.9 km</b>, <b>39 min</b><br><br><b>Cluster B - Central / West Beat</b><br><table style='width:100%; border-collapse:collapse;'><tr><td>1. Kelavarapalli</td><td style='text-align:right'>5.0 km</td><td style='text-align:right'>11 min</td></tr><tr><td>2. Chennasandiram</td><td style='text-align:right'>3.2 km</td><td style='text-align:right'>7 min</td></tr></table>Total: <b>8.2 km</b>, <b>18 min</b><br><br><b>Cluster C - North / North-East Beat</b><br><table style='width:100%; border-collapse:collapse;'><tr><td>1. Bagaloor / Bagalur</td><td style='text-align:right'>14.0 km</td><td style='text-align:right'>30 min</td></tr><tr><td>2. Belathur</td><td style='text-align:right'>3.1 km</td><td style='text-align:right'>7 min</td></tr><tr><td>3. Thummanapalli</td><td style='text-align:right'>6.7 km</td><td style='text-align:right'>14 min</td></tr></table>Total: <b>23.8 km</b>, <b>51 min</b><br><br>
+<div style="color:#555;">Approximate local-road planning for beat scheduling.</div>
+</div>
+    
+            <div class="folium-map" id="map_d1065921d3ea1d47c39b97053c4169b4" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_d1065921d3ea1d47c39b97053c4169b4 = L.map(
+                "map_d1065921d3ea1d47c39b97053c4169b4",
+                {
+                    center: [12.755355948888889, 77.86235068666666],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 12,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+            L.control.scale().addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+
+            
+
+        
+    
+            var tile_layer_5c38c112960bc9a8cfc7001d6f3626a1 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_5c38c112960bc9a8cfc7001d6f3626a1.addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            var marker_c359a7efc506a22b4cd7d906620e128a = L.marker(
+                [12.734639, 77.832611],
+                {
+}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            var icon_b0326ac9fa5ae7f1938e4c7f90011b11 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "home",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_d581fbfff7756a6718c88b90a9d6d922 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_2bf6ee0d701fa24e0d8af89d7f52d013 = $(`<div id="html_2bf6ee0d701fa24e0d8af89d7f52d013" style="width: 100.0%; height: 100.0%;">Start: Your exact Hosur location<br>12.734639, 77.832611</div>`)[0];
+                popup_d581fbfff7756a6718c88b90a9d6d922.setContent(html_2bf6ee0d701fa24e0d8af89d7f52d013);
+            
+        
+
+        marker_c359a7efc506a22b4cd7d906620e128a.bindPopup(popup_d581fbfff7756a6718c88b90a9d6d922)
+        ;
+
+        
+    
+    
+            marker_c359a7efc506a22b4cd7d906620e128a.bindTooltip(
+                `<div>
+                     Start: Your exact Hosur location
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_c359a7efc506a22b4cd7d906620e128a.setIcon(icon_b0326ac9fa5ae7f1938e4c7f90011b11);
+            
+    
+            var poly_line_5474411a56c7e498c6f462ce712a8f52 = L.polyline(
+                [[12.734639, 77.832611], [12.6835983, 77.85923], [12.6863228, 77.8803164], [12.6746976, 77.8267098]],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "green", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            poly_line_5474411a56c7e498c6f462ce712a8f52.bindTooltip(
+                `<div>
+                     Cluster A - South / South-West Beat
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_8f68d2bdbec742fb45add86196292f96 = L.marker(
+                [12.6835983, 77.85923],
+                {
+}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            var icon_583b2f429632b9a35bfbe4ae79d53207 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "map-marker",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_2458240a5121dacdc14e3a304bb88891 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_96a90f84812fb89a1db212040004dd24 = $(`<div id="html_96a90f84812fb89a1db212040004dd24" style="width: 100.0%; height: 100.0%;"><b>Cluster A - South / South-West Beat</b><br>Stop 1: Onnalvadi<br>From: Start: Your exact Hosur location<br>Approx road leg: 7.8 km<br>Approx time: 17 min</div>`)[0];
+                popup_2458240a5121dacdc14e3a304bb88891.setContent(html_96a90f84812fb89a1db212040004dd24);
+            
+        
+
+        marker_8f68d2bdbec742fb45add86196292f96.bindPopup(popup_2458240a5121dacdc14e3a304bb88891)
+        ;
+
+        
+    
+    
+            marker_8f68d2bdbec742fb45add86196292f96.bindTooltip(
+                `<div>
+                     Cluster A - South / South-West Beat: 1. Onnalvadi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_8f68d2bdbec742fb45add86196292f96.setIcon(icon_583b2f429632b9a35bfbe4ae79d53207);
+            
+    
+            var marker_d58cab58d204179afb4b6dc0bdd44381 = L.marker(
+                [12.6863228, 77.8803164],
+                {
+}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            var icon_b87681291a04f7601da3f9c94f23d8f2 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "map-marker",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_8e178b035f3d64aad402183ffa7c52ce = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_775ec2d7a41f3de8f723aed62f5c507b = $(`<div id="html_775ec2d7a41f3de8f723aed62f5c507b" style="width: 100.0%; height: 100.0%;"><b>Cluster A - South / South-West Beat</b><br>Stop 2: Thorapalli Agraharam<br>From: Onnalvadi<br>Approx road leg: 2.8 km<br>Approx time: 6 min</div>`)[0];
+                popup_8e178b035f3d64aad402183ffa7c52ce.setContent(html_775ec2d7a41f3de8f723aed62f5c507b);
+            
+        
+
+        marker_d58cab58d204179afb4b6dc0bdd44381.bindPopup(popup_8e178b035f3d64aad402183ffa7c52ce)
+        ;
+
+        
+    
+    
+            marker_d58cab58d204179afb4b6dc0bdd44381.bindTooltip(
+                `<div>
+                     Cluster A - South / South-West Beat: 2. Thorapalli Agraharam
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_d58cab58d204179afb4b6dc0bdd44381.setIcon(icon_b87681291a04f7601da3f9c94f23d8f2);
+            
+    
+            var marker_ca0ff15fc8243bd92dd103706cab4851 = L.marker(
+                [12.6746976, 77.8267098],
+                {
+}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            var icon_a8e056b642b04187513b8680d81237c1 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "map-marker",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_23cb27f43aee8bd050ff6554f7502637 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_1605ed9a5bc32bf9d2fad340d531d112 = $(`<div id="html_1605ed9a5bc32bf9d2fad340d531d112" style="width: 100.0%; height: 100.0%;"><b>Cluster A - South / South-West Beat</b><br>Stop 3: Achettipalli<br>From: Thorapalli Agraharam<br>Approx road leg: 7.3 km<br>Approx time: 16 min</div>`)[0];
+                popup_23cb27f43aee8bd050ff6554f7502637.setContent(html_1605ed9a5bc32bf9d2fad340d531d112);
+            
+        
+
+        marker_ca0ff15fc8243bd92dd103706cab4851.bindPopup(popup_23cb27f43aee8bd050ff6554f7502637)
+        ;
+
+        
+    
+    
+            marker_ca0ff15fc8243bd92dd103706cab4851.bindTooltip(
+                `<div>
+                     Cluster A - South / South-West Beat: 3. Achettipalli
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_ca0ff15fc8243bd92dd103706cab4851.setIcon(icon_a8e056b642b04187513b8680d81237c1);
+            
+    
+            var poly_line_3ea7923fb15da5d9f7198852244ace52 = L.polyline(
+                [[12.734639, 77.832611], [12.7567464, 77.8624545], [12.7795, 77.8686]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            poly_line_3ea7923fb15da5d9f7198852244ace52.bindTooltip(
+                `<div>
+                     Cluster B - Central / West Beat
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_b232727c64bcf9d69fa3fd9d23f67522 = L.marker(
+                [12.7567464, 77.8624545],
+                {
+}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            var icon_129750701ae541c53a329103842cdf21 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "map-marker",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_dcb25ed1e6c4e28b3d5c1de6781ce08f = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_784d05d1f8882df32719e338f608b9d4 = $(`<div id="html_784d05d1f8882df32719e338f608b9d4" style="width: 100.0%; height: 100.0%;"><b>Cluster B - Central / West Beat</b><br>Stop 1: Kelavarapalli<br>From: Start: Your exact Hosur location<br>Approx road leg: 5.0 km<br>Approx time: 11 min</div>`)[0];
+                popup_dcb25ed1e6c4e28b3d5c1de6781ce08f.setContent(html_784d05d1f8882df32719e338f608b9d4);
+            
+        
+
+        marker_b232727c64bcf9d69fa3fd9d23f67522.bindPopup(popup_dcb25ed1e6c4e28b3d5c1de6781ce08f)
+        ;
+
+        
+    
+    
+            marker_b232727c64bcf9d69fa3fd9d23f67522.bindTooltip(
+                `<div>
+                     Cluster B - Central / West Beat: 1. Kelavarapalli
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_b232727c64bcf9d69fa3fd9d23f67522.setIcon(icon_129750701ae541c53a329103842cdf21);
+            
+    
+            var marker_8e113fe9ad3f83096435dd9c482a2797 = L.marker(
+                [12.7795, 77.8686],
+                {
+}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            var icon_cf027f1dbdeb83c82ddde7b92672a685 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "map-marker",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_05b8ecb26779fbac0a4470052b4f5529 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_1d2b5bedf9a172262c285dcef31fa0c4 = $(`<div id="html_1d2b5bedf9a172262c285dcef31fa0c4" style="width: 100.0%; height: 100.0%;"><b>Cluster B - Central / West Beat</b><br>Stop 2: Chennasandiram<br>From: Kelavarapalli<br>Approx road leg: 3.2 km<br>Approx time: 7 min</div>`)[0];
+                popup_05b8ecb26779fbac0a4470052b4f5529.setContent(html_1d2b5bedf9a172262c285dcef31fa0c4);
+            
+        
+
+        marker_8e113fe9ad3f83096435dd9c482a2797.bindPopup(popup_05b8ecb26779fbac0a4470052b4f5529)
+        ;
+
+        
+    
+    
+            marker_8e113fe9ad3f83096435dd9c482a2797.bindTooltip(
+                `<div>
+                     Cluster B - Central / West Beat: 2. Chennasandiram
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_8e113fe9ad3f83096435dd9c482a2797.setIcon(icon_cf027f1dbdeb83c82ddde7b92672a685);
+            
+    
+            var poly_line_4f31e8bc1216f69c59bc22ced336803a = L.polyline(
+                [[12.734639, 77.832611], [12.8367809, 77.846441], [12.83391854, 77.86979348], [12.812, 77.915]],
+                {"bubblingMouseEvents": true, "color": "purple", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "purple", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            poly_line_4f31e8bc1216f69c59bc22ced336803a.bindTooltip(
+                `<div>
+                     Cluster C - North / North-East Beat
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_7c025c221448034b07b5e836b4e60892 = L.marker(
+                [12.8367809, 77.846441],
+                {
+}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            var icon_bd93f6301fc612f8d5ca7de6d735003f = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "purple",
+  "iconColor": "white",
+  "icon": "map-marker",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_ac3857434c8b87c14dfd46208b96fca7 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_237c2b4e56031b699d4b0fe92ccfbfc5 = $(`<div id="html_237c2b4e56031b699d4b0fe92ccfbfc5" style="width: 100.0%; height: 100.0%;"><b>Cluster C - North / North-East Beat</b><br>Stop 1: Bagaloor / Bagalur<br>From: Start: Your exact Hosur location<br>Approx road leg: 14.0 km<br>Approx time: 30 min</div>`)[0];
+                popup_ac3857434c8b87c14dfd46208b96fca7.setContent(html_237c2b4e56031b699d4b0fe92ccfbfc5);
+            
+        
+
+        marker_7c025c221448034b07b5e836b4e60892.bindPopup(popup_ac3857434c8b87c14dfd46208b96fca7)
+        ;
+
+        
+    
+    
+            marker_7c025c221448034b07b5e836b4e60892.bindTooltip(
+                `<div>
+                     Cluster C - North / North-East Beat: 1. Bagaloor / Bagalur
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_7c025c221448034b07b5e836b4e60892.setIcon(icon_bd93f6301fc612f8d5ca7de6d735003f);
+            
+    
+            var marker_8b463574d9153a481faa5af248a8141e = L.marker(
+                [12.83391854, 77.86979348],
+                {
+}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            var icon_51e9f3fa1958b669a4ed4473266d1201 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "purple",
+  "iconColor": "white",
+  "icon": "map-marker",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_8707bf0a41fbc6bde8ff760de17f013b = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_dff42f859d7f40237ea231d4ef42f380 = $(`<div id="html_dff42f859d7f40237ea231d4ef42f380" style="width: 100.0%; height: 100.0%;"><b>Cluster C - North / North-East Beat</b><br>Stop 2: Belathur<br>From: Bagaloor / Bagalur<br>Approx road leg: 3.1 km<br>Approx time: 7 min</div>`)[0];
+                popup_8707bf0a41fbc6bde8ff760de17f013b.setContent(html_dff42f859d7f40237ea231d4ef42f380);
+            
+        
+
+        marker_8b463574d9153a481faa5af248a8141e.bindPopup(popup_8707bf0a41fbc6bde8ff760de17f013b)
+        ;
+
+        
+    
+    
+            marker_8b463574d9153a481faa5af248a8141e.bindTooltip(
+                `<div>
+                     Cluster C - North / North-East Beat: 2. Belathur
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_8b463574d9153a481faa5af248a8141e.setIcon(icon_51e9f3fa1958b669a4ed4473266d1201);
+            
+    
+            var marker_def342d8de63b843b4fc96a673b9c8a5 = L.marker(
+                [12.812, 77.915],
+                {
+}
+            ).addTo(map_d1065921d3ea1d47c39b97053c4169b4);
+        
+    
+            var icon_4e0a301bcef92953ee8a3fd9f20c80e5 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "purple",
+  "iconColor": "white",
+  "icon": "map-marker",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_98ff5019ac179e0a4d652ea126bc9eed = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_11a6ab3e149d221dcf1bb4f6b1eb8ef9 = $(`<div id="html_11a6ab3e149d221dcf1bb4f6b1eb8ef9" style="width: 100.0%; height: 100.0%;"><b>Cluster C - North / North-East Beat</b><br>Stop 3: Thummanapalli<br>From: Belathur<br>Approx road leg: 6.7 km<br>Approx time: 14 min</div>`)[0];
+                popup_98ff5019ac179e0a4d652ea126bc9eed.setContent(html_11a6ab3e149d221dcf1bb4f6b1eb8ef9);
+            
+        
+
+        marker_def342d8de63b843b4fc96a673b9c8a5.bindPopup(popup_98ff5019ac179e0a4d652ea126bc9eed)
+        ;
+
+        
+    
+    
+            marker_def342d8de63b843b4fc96a673b9c8a5.bindTooltip(
+                `<div>
+                     Cluster C - North / North-East Beat: 3. Thummanapalli
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_def342d8de63b843b4fc96a673b9c8a5.setIcon(icon_4e0a301bcef92953ee8a3fd9f20c80e5);
+            
+    
+            map_d1065921d3ea1d47c39b97053c4169b4.fitBounds(
+                [[12.734639, 77.832611], [12.6746976, 77.8267098], [12.8367809, 77.846441], [12.83391854, 77.86979348], [12.7795, 77.8686], [12.7567464, 77.8624545], [12.6835983, 77.85923], [12.6863228, 77.8803164], [12.812, 77.915]],
+                {"padding": [30, 30]}
+            );
+        
+</script>
+</html>
