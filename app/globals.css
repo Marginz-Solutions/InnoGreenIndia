@@ -1,3 +1,4 @@
+@import "tailwindcss";
 :root{
   --bg:#07130b; --bg2:#0e1f12; --panel:#102017; --card:#ffffff; --text:#102018;
   --muted:#61756a; --line:#dce8df; --brand:#1f7a36; --brand2:#5cab3d; --gold:#c9a646;
@@ -52,5 +53,37 @@ table{width:100%;border-collapse:collapse;background:#fff} thead th{position:sti
 .login-card{width:min(460px,100%);background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.45);border-radius:28px;padding:28px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
 .login-head{display:flex;align-items:center;gap:16px;margin-bottom:18px}.login-head img{width:76px;height:76px;object-fit:contain}.login-card h1{margin:0;font-size:28px;color:#10361c}.login-card p{margin:6px 0 0;color:#577266}.login-card label{display:block;font-size:13px;font-weight:700;margin:14px 0 8px;color:#21432a}.error{display:none;margin-top:14px;padding:12px 14px;border-radius:12px;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3}.error.show{display:block}.login-foot{margin-top:16px;color:#5f6f66;font-size:12px;text-align:center}
 .quick-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+
+.edit-input {
+  width: 100%;
+  padding: 12px 16px;
+  margin: 8px 0;
+  background: #ffffff;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--text);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.edit-input:focus {
+  border-color: var(--brand);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(31, 122, 54, 0.1);
+}
+
+.dark-panel .edit-input {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.dark-panel .edit-input:focus {
+  border-color: var(--brand2);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 4px rgba(92, 172, 61, 0.2);
+}
 @media (max-width:1100px){.hero,.kpis,.sheet-grid{grid-template-columns:1fr 1fr}.col-4,.col-5,.col-6,.col-7,.col-8{grid-column:span 12}}
 @media (max-width:700px){.hero,.kpis,.sheet-grid{grid-template-columns:1fr}.container{padding:16px}.topbar{padding:16px}.brand h1{font-size:20px}.brand-logo{width:48px;height:48px}}
