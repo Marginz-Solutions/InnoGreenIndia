@@ -5,9 +5,9 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 
-import { NAV_ITEMS } from '../constants/nav-items';
+import { NAV_ITEMS } from '@/components/website-customization/constants/nav-items';
 
-import { SidebarSection } from '../types/common.types';
+import { SidebarSection } from '@/components/website-customization/types/common.types';
 
 interface Props {
   active: SidebarSection;

@@ -58,9 +58,7 @@ export default function WebsiteCustomizationPage() {
   };
 
   return (
-    <AuthGuard>
-      <Topbar />
-
+    <>
       <MobileSidebar
         open={mobileSidebarOpen}
         active={section}
@@ -93,7 +91,6 @@ export default function WebsiteCustomizationPage() {
           </div>
         </div>
       </div>
-      <Footer />
-    </AuthGuard>
+      </>
   );
 }
