@@ -28,8 +28,6 @@ a{text-decoration:none;color:inherit}
 .kpi{background:#fff;border:1px solid #e2ece3;border-radius:18px;padding:18px;box-shadow:0 10px 20px rgba(15,23,42,.04)}
 .kpi .label{color:#64748b;font-size:13px;margin-bottom:8px}
 .kpi .value{font-size:28px;font-weight:800;color:#10361c}
-.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
-.col-4{grid-column:span 4}.col-5{grid-column:span 5}.col-6{grid-column:span 6}.col-7{grid-column:span 7}.col-8{grid-column:span 8}.col-12{grid-column:span 12}
 .card{background:#fff;border:1px solid #e2ece3;border-radius:20px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.04)}
 .card h2,.panel h2{margin:0 0 12px;font-size:18px}.card h3{margin:0 0 10px;font-size:16px}
 .muted{color:var(--muted)}
