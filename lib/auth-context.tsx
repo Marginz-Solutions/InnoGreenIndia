@@ -1,50 +1,75 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from 'react';
 import { useRouter } from 'next/navigation';
-
-const IGIM_AUTH_KEY = 'igim_auth_ok';
-const IGIM_USER = 'SSFP';
-const IGIM_PASS = 'Samrudhi@2026';
+import type { Session } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/client';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (userId: string, password: string) => boolean;
-  logout: () => void;
+  session: Session | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const authStatus = localStorage.getItem(IGIM_AUTH_KEY) === '1';
-    setIsAuthenticated(authStatus);
-    setIsLoading(false);
+    const supabase = createClient();
+
+    supabase.auth.getSession().then(({ data: { session: next } }) => {
+      setSession(next);
+      setIsLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = useCallback((userId: string, password: string): boolean => {
-    if (userId === IGIM_USER && password === IGIM_PASS) {
-      localStorage.setItem(IGIM_AUTH_KEY, '1');
-      setIsAuthenticated(true);
+  const login = useCallback(
+    async (email: string, password: string): Promise<boolean> => {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (error) return false;
       router.replace('/');
       return true;
-    }
-    return false;
-  }, [router]);
+    },
+    [router]
+  );
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(IGIM_AUTH_KEY);
-    setIsAuthenticated(false);
+  const logout = useCallback(async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     router.replace('/login');
   }, [router]);
 
+  const isAuthenticated = !!session;
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, isLoading, session, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
