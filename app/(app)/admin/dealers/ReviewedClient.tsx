@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { Dealer } from "./page";
+import type { Dealer } from "./types";
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
 
@@ -107,8 +107,15 @@ function DrawerField({
 
 type ViewMode = "table" | "grid";
 
-export default function ReviewedDealersClient({ dealers: initial }: { dealers: Dealer[] }) {
+export default function ReviewedDealersClient({
+  dealers: initial,
+  setFetchedDealers,
+}: {
+  dealers: Dealer[];
+  setFetchedDealers: React.Dispatch<React.SetStateAction<Dealer[]>>;
+}) {
   const router = useRouter();
+  
   const [dealers, setDealers] = useState<Dealer[]>(initial);
   const [selected, setSelected] = useState<Dealer | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Dealer | null>(null);
@@ -140,7 +147,9 @@ export default function ReviewedDealersClient({ dealers: initial }: { dealers: D
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: deleteTarget.id }),
     });
-
+    
+    setFetchedDealers((prev) => prev.filter((d) => d.id !== deleteTarget.id));
+    
     setDeletingId(null);
     setDeleteTarget(null);
 
@@ -166,7 +175,7 @@ export default function ReviewedDealersClient({ dealers: initial }: { dealers: D
   );
 
   return (
-    <div className="min-h-screen bg-[#f5f5f0] p-6 font-sans">
+    <div className="min-h-screen p-6 font-sans overflow-y-scroll">
 
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
@@ -219,7 +228,7 @@ export default function ReviewedDealersClient({ dealers: initial }: { dealers: D
 
       {/* ── GRID VIEW ─────────────────────────────────────────────────────────── */}
       {view === "grid" && filtered?.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2  gap-4">
           {filtered?.map((dealer) => (
             <div key={dealer.id} onClick={() => setSelected(dealer)}
               className="cursor-pointer rounded-2xl border border-gray-200 bg-white p-5 shadow-sm
@@ -321,8 +330,8 @@ export default function ReviewedDealersClient({ dealers: initial }: { dealers: D
           <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-white px-5 pt-5 pb-8 shadow-2xl
             md:bottom-auto md:right-0 md:top-0 md:left-auto md:h-full md:w-[30rem]
             md:rounded-none md:rounded-l-3xl md:px-6 md:pt-6 md:pb-10 overflow-y-auto">
-            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200 md:hidden" />
-            <div className="flex items-center justify-between mb-2">
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200 md:hidden " />
+            <div className="flex items-center justify-between mb-2 sm:mt-40 mt-70 lg:mt-35 xl:mt-20">
               <h2 className="text-base font-semibold text-gray-900">{selected.firmName}</h2>
               <button onClick={() => setSelected(null)}
                 className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"
