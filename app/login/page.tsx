@@ -6,9 +6,10 @@ import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const [userId, setUserId] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { login, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
@@ -18,9 +19,12 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const success = login(userId, password);
+    setSubmitting(true);
+    setError(false);
+    const success = await login(email, password);
+    setSubmitting(false);
     if (!success) {
       setError(true);
     }
@@ -49,15 +53,15 @@ export default function LoginPage() {
             <p>Secure access for field staff, retail planning, and management.</p>
           </div>
         </div>
-        <label htmlFor="userid">User ID</label>
+        <label htmlFor="email">Email</label>
         <input
-          id="userid"
-          type="text"
-          autoComplete="username"
-          placeholder="Enter user ID"
-          value={userId}
+          id="email"
+          type="email"
+          autoComplete="email"
+          placeholder="name@example.com"
+          value={email}
           onChange={(e) => {
-            setUserId(e.target.value);
+            setEmail(e.target.value);
             setError(false);
           }}
         />
@@ -74,12 +78,17 @@ export default function LoginPage() {
           }}
         />
         <div className="quick-actions">
-          <button className="btn primary" type="submit" style={{ flex: 1 }}>
-            Login to portal
+          <button
+            className="btn primary"
+            type="submit"
+            style={{ flex: 1 }}
+            disabled={submitting}
+          >
+            {submitting ? 'Signing in…' : 'Login to portal'}
           </button>
         </div>
         <div className={`error ${error ? 'show' : ''}`}>
-          Invalid user ID or password.
+          Invalid email or password.
         </div>
         <div className="login-foot">IGIM - Innovate - Farmers - Crops</div>
       </form>
