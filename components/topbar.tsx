@@ -42,7 +42,12 @@ export function Topbar() {
               {link.label}
             </Link>
           ))}
-          <a onClick={logout} style={{ cursor: 'pointer' }}>
+          <a
+            onClick={() => {
+              void logout();
+            }}
+            style={{ cursor: 'pointer' }}
+          >
             Logout
           </a>
         </div>
