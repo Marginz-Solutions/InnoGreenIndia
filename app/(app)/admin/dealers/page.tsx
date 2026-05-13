@@ -38,7 +38,7 @@ const DEALER_SEED: Dealer[] = [
   { id: '3', name: 'Velu Farm Supplies', location: 'Madurai, Tamil Nadu', phone: '+91 76543 21098', email: 'velu@farmsupplies.com', district: 'Madurai', status: 'inactive' },
 ];
 
-export const DealerSection = () => {
+export default function DealersPage() {
   const [items, setItems] = useState<Dealer[]>(DEALER_SEED);
   const [query, setQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -190,4 +190,4 @@ export const DealerSection = () => {
       </Modal>
     </div>
   );
-};
+}

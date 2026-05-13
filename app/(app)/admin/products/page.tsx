@@ -39,7 +39,7 @@ const PROD_SEED: Product[] = [
   { id: '3', name: 'HybridSeed Maize X7', category: 'Seeds', sku: 'SED-045', featured: true, status: 'inactive', tags: ['Hybrid', 'Kharif'] },
 ];
 
-export const ProductsSection = () => {
+export default function ProductsPage() {
   const [items, setItems] = useState<Product[]>(PROD_SEED);
   const [query, setQuery] = useState('');
   const [catFilter, setCatFilter] = useState('all');
@@ -192,4 +192,4 @@ export const ProductsSection = () => {
       </Modal>
     </div>
   );
-};
+}

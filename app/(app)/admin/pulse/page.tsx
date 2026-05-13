@@ -41,7 +41,7 @@ export const PULSE_SEED: PulseItem[] = [
   { id: '3', title: 'Micro-nutrient Spray', price: 850, unit: 'per litre', available: false, status: 'draft', category: 'Pesticides', createdAt: '2025-05-08' },
 ];
 
-export const PulseSection = () => {
+export default function PulsePage() {
   const [items, setItems] = useState<PulseItem[]>(PULSE_SEED);
   const [query, setQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -244,4 +244,4 @@ export const PulseSection = () => {
       </Modal>
     </div>
   );
-};
+}

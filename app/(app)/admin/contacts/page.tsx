@@ -51,7 +51,7 @@ const contactTypeIcon = (type: ContactItem['type'], platform?: string) => {
     return <Globe size={16} className="text-[#1f7a36]" />;
 };
 
-export const ContactsSection = () => {
+export default function ContactsPage() {
     const [items, setItems] = useState<ContactItem[]>(CONTACT_SEED);
     const [modalOpen, setModalOpen] = useState(false);
     const [editItem, setEditItem] = useState<ContactItem | null>(null);
@@ -197,4 +197,4 @@ export const ContactsSection = () => {
             </Modal>
         </div>
     );
-};
+}

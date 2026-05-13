@@ -39,7 +39,7 @@ const BRAND_SEED: Brand[] = [
   { id: '3', name: 'SeedMax', description: 'Premium hybrid seed supplier for Kharif and Rabi seasons.', website: 'https://seedmax.com', status: 'inactive', productsCount: 5 },
 ];
 
-export const BrandsSection = () => {
+export default function BrandsPage() {
   const [items, setItems] = useState<Brand[]>(BRAND_SEED);
   const [query, setQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -159,4 +159,4 @@ export const BrandsSection = () => {
       </Modal>
     </div>
   );
-};
+}
