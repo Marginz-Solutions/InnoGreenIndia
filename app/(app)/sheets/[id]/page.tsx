@@ -3,8 +3,6 @@
 import { use } from 'react';
 import { notFound } from 'next/navigation';
 import { AuthGuard } from '@/components/auth-guard';
-import { Topbar } from '@/components/topbar';
-import { Footer } from '@/components/footer';
 import { SheetTable } from '@/components/sheet-table';
 import { getSheetData } from '@/lib/sheet-data';
 
@@ -22,7 +20,6 @@ export default function SheetPage({ params }: SheetPageProps) {
 
   return (
     <AuthGuard>
-      <Topbar />
       <SheetTable
         tableId={`table-${sheet.id}`}
         title={sheet.title}
@@ -34,7 +31,7 @@ export default function SheetPage({ params }: SheetPageProps) {
         backLink="/sheets"
         exportFilename={`${sheet.id}.csv`}
       />
-      <Footer />
     </AuthGuard>
   );
 }
+
