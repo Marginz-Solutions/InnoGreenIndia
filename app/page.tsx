@@ -68,7 +68,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid1">
+        <div className="grid">
           <div className="card col-8">
             <h2>Cluster commercial summary</h2>
             <p className="muted">Quick management view of commercial focus by cluster.</p>
