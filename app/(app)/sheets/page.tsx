@@ -2,14 +2,11 @@
 
 import Link from 'next/link';
 import { AuthGuard } from '@/components/auth-guard';
-import { Topbar } from '@/components/topbar';
-import { Footer } from '@/components/footer';
 import { SHEET_REGISTRY } from '@/lib/sheet-registry';
 
 export default function SheetsPage() {
   return (
     <AuthGuard>
-      <Topbar />
       <div className="container">
         <div className="panel">
           <h2>IGIM planning sheets</h2>
@@ -35,7 +32,7 @@ export default function SheetsPage() {
           ))}
         </div>
       </div>
-      <Footer />
     </AuthGuard>
   );
 }
+
