@@ -6,11 +6,11 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
 const navLinks = [
-  { href: "/", label: "Dashboard" },
-  { href: "/sheets", label: "Planning Sheets" },
-  { href: "/maps/cluster", label: "Cluster Map" },
-  { href: "/maps/field-visit", label: "Field Route Map" },
-  { href: "/contact", label: "Contact" },
+  { href: '/', label: 'Dashboard' },
+  { href: '/admin', label: 'Website Customization' },
+  { href: '/sheets', label: 'Planning Sheets' },
+  { href: '/maps/cluster', label: 'Cluster Map' },
+  { href: '/maps/field-visit', label: 'Field Route Map' },
 ];
 
 export function Topbar() {

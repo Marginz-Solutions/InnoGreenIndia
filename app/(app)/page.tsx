@@ -2,20 +2,17 @@
 
 import Link from 'next/link';
 import { AuthGuard } from '@/components/auth-guard';
-import { Topbar } from '@/components/topbar';
-import { Footer } from '@/components/footer';
 import { CLUSTER_SUMMARY_DATA, PRIORITY_BLOCKS, KPI_VALUES } from '@/lib/sheet-registry';
 
 export default function DashboardPage() {
   return (
     <AuthGuard>
-      <Topbar />
       <div className="container">
         <div className="hero">
           <div className="panel dark">
             <h2>Branded IGIM operational command center</h2>
             <p>
-              This web app is structured for daily field execution, retail territory planning, and management review. 
+              This web app is structured for daily field execution, retail planning, and management review. 
               Teams can browse planning sheets, open route maps, review commercial clusters, and use the portal as a single branded IGIM workspace.
             </p>
             <div className="inline-tags">
@@ -149,7 +146,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-      <Footer />
     </AuthGuard>
   );
 }
+
