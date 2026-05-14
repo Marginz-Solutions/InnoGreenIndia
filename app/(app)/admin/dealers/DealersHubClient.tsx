@@ -390,7 +390,7 @@ export default function DealersHubClient({
 
             {/* Tab bar */}
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 pt-4 flex-wrap gap-y-2">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-wrap">
                     {tabs.map((t) => (
                         <button
                             key={t.key}
