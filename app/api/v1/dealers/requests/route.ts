@@ -61,3 +61,60 @@ export async function PATCH(request: Request) {
 
   return NextResponse.json({ data });
 }
+
+export async function POST(request: Request) {
+  const supabase = await createClient();
+
+  try {
+    const body = await request.json();
+
+    const {
+      firmName,
+      gstNumber,
+      mobileNo,
+      district,
+      categoryInterest,
+      monthlyVolume,
+      status,
+    } = body;
+
+    // Basic validation
+    if (!firmName || !gstNumber || !mobileNo || !district || !categoryInterest) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const { data, error } = await supabase
+      .from("dealers")
+      .insert([
+        {
+          firmName,
+          gstNumber,
+          mobileNo,
+          district,
+          categoryInterest,
+          monthlyVolume: monthlyVolume || null,
+          status: status || "new",
+          submittedAt: new Date().toISOString(),
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ data }, { status: 201 });
+  } catch (err) {
+    return NextResponse.json(
+      { error: "Invalid JSON body" },
+      { status: 400 }
+    );
+  }
+}
