@@ -17,13 +17,31 @@ createdAt: string;
 }
 
 export interface Product {
-id: string;
-name: string;
-category: string;
-sku: string;
-featured: boolean;
-status: 'active' | 'inactive';
-tags: string[];
+  id: string;
+  name: string;
+  slug: string;
+  brandId: string;
+  categoryId: string;
+  description: string;
+  shortDescription: string;
+  imageUrl?: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  tags: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  sku: string;
+  featured: boolean;
+  status: 'active' | 'inactive';
+}
+
+export interface ProductFilters {
+  query: string;
+  category: string;
+  status: 'all' | 'active' | 'inactive';
+  featured: 'all' | 'yes' | 'no';
 }
 
 export interface Brand {
@@ -34,7 +52,10 @@ website: string;
 status: 'active' | 'inactive';
 productsCount: number;
 }
-
+export interface Category {
+  id: string;
+  name: string;
+}
 export interface Dealer {
 id: string;
 name: string;
