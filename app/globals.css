@@ -528,3 +528,34 @@ tbody tr:hover {
     height: 48px
   }
 }
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Hide up/down arrow buttons */
+::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
