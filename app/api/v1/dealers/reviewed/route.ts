@@ -4,16 +4,22 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET() {
     const supabase = await createClient();
 
-    const { data, error } = await supabase
-        .from("dealers")
-        .select("*")
-        .not("reviewedAt", "is", null)
-        .order("reviewedAt", { ascending: false });
+ const { data, error } = await supabase
+  .from("dealers")
+  .select(`
+    *,
+    categories:category_interest (
+      id,
+      name
+    )
+  `)
+  .not("reviewed_at", "is", null)
+  .order("reviewed_at", { ascending: false });
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-
+    console.log(data);
     return NextResponse.json({ data });
 }
 

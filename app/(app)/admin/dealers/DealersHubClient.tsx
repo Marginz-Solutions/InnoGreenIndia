@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import EnquiriesClient from "./EnquiriesClient";
 import ReviewedDealersClient from "./ReviewedClient";
 import type { Enquiry, Dealer } from "./types";
@@ -9,21 +9,21 @@ import { Breadcrumb } from "@/components/website-customization/shared/Breadcrumb
 type Tab = "dashboard" | "enquiries" | "reviewed";
 
 type DealerForm = {
-    firmName: string;
-    gstNumber: string;
-    mobileNo: string;
+    firm_name: string;
+    gst_number: string;
+    mobile_no: string;
     district: string;
-    categoryInterest: string;
-    monthlyVolume: string;
+    category_interest: string;
+    monthly_volume: string;
 };
 
 const emptyForm: DealerForm = {
-    firmName: "",
-    gstNumber: "",
-    mobileNo: "",
+    firm_name: "",
+    gst_number: "",
+    mobile_no: "",
     district: "",
-    categoryInterest: "",
-    monthlyVolume: "",
+    category_interest: "",
+    monthly_volume: "",
 };
 
 // ── Dashboard sub-components ───────────────────────────────────────────────────
@@ -93,18 +93,18 @@ function ActivityRow({ enquiry }: { enquiry: Enquiry }) {
         <div className="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-none">
             <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-full bg-[#EAF3DE] flex items-center justify-center text-xs font-semibold text-[#2d5a27] shrink-0">
-                    {enquiry.firmName?.split(" ").slice(0, 2).map((w) => w[0]).join("")}
+                    {enquiry.firm_name?.split(" ").slice(0, 2).map((w) => w[0]).join("")}
                 </div>
                 <div>
-                    <p className="text-sm font-medium text-gray-800 leading-tight">{enquiry.firmName}</p>
-                    <p className="text-[11px] text-gray-400">{enquiry.district} · {enquiry.categoryInterest}</p>
+                    <p className="text-sm font-medium text-gray-800 leading-tight">{enquiry.firm_name}</p>
+                    <p className="text-[11px] text-gray-400">{enquiry.district} · {enquiry.categories.name}</p>
                 </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
                 <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusColor[enquiry.status]}`}>
                     {enquiry.status}
                 </span>
-                <p className="text-[11px] text-gray-400 hidden sm:block">{enquiry.submittedAt}</p>
+                <p className="text-[11px] text-gray-400 hidden sm:block">{enquiry.submitted_at}</p>
             </div>
         </div>
     );
@@ -150,8 +150,8 @@ function Dashboard({ enquiries, dealers }: { enquiries: Enquiry[]; dealers: Deal
     // Category breakdown across both enquiries + dealers
     const categoryMap = useMemo(() => {
         const map: Record<string, number> = {};
-        enquiries.forEach((e) => { map[e.categoryInterest] = (map[e.categoryInterest] ?? 0) + 1; });
-        dealers.forEach((d) => { map[d.categoryInterest] = (map[d.categoryInterest] ?? 0) + 1; });
+        enquiries.forEach((e) => { map[e.categories.name] = (map[e.categories.name] ?? 0) + 1; });
+        dealers.forEach((d) => { map[d.categories.name] = (map[d.categories.name] ?? 0) + 1; });
         return Object.entries(map).sort((a, b) => b[1] - a[1]);
     }, [enquiries, dealers]);
 
@@ -184,7 +184,7 @@ function Dashboard({ enquiries, dealers }: { enquiries: Enquiry[]; dealers: Deal
         <div className="p-6 space-y-5">
 
             {/* KPI row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 <KpiCard
                     label="Total Enquiries"
                     value={enquiries.length}
@@ -212,7 +212,7 @@ function Dashboard({ enquiries, dealers }: { enquiries: Enquiry[]; dealers: Deal
             </div>
 
             {/* Middle row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
                 {/* Status donut */}
                 <SectionCard title="Status breakdown">
@@ -288,20 +288,20 @@ function Dashboard({ enquiries, dealers }: { enquiries: Enquiry[]; dealers: Deal
             </SectionCard>
 
             {/* Dealers with volume */}
-            {dealers.filter((d) => d.monthlyVolume).length > 0 && (
+            {dealers.filter((d) => d.monthly_volume).length > 0 && (
                 <SectionCard title="Monthly volume — top dealers">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {dealers
-                            .filter((d) => d.monthlyVolume)
+                            .filter((d) => d.monthly_volume)
                             .slice(0, 6)
                             .map((d) => (
                                 <div key={d.id}
                                     className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm font-medium text-gray-800 leading-tight">{d.firmName}</p>
+                                        <p className="text-sm font-medium text-gray-800 leading-tight">{d.firm_name}</p>
                                         <p className="text-[11px] text-gray-400 mt-0.5">{d.district}</p>
                                     </div>
-                                    <span className="text-sm font-semibold text-[#2d5a27]">{d.monthlyVolume}</span>
+                                    <span className="text-sm font-semibold text-[#2d5a27]">{d.monthly_volume}</span>
                                 </div>
                             ))}
                     </div>
@@ -327,15 +327,28 @@ export default function DealersHubClient({
     const [form, setForm] = useState<DealerForm>(emptyForm);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
+    useEffect(() => {
+        getCategories()
+    }, [])
+
+    const getCategories = async () => {
+        const res = await fetch("/api/v1/categories", { cache: "no-store" });
+        const data = await res.json();
+        console.log(data.data);
+        setCategories(data.data);
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         setError(null);
+        console.log("Submitting form:", form);
         const res = await fetch("/api/v1/dealers/requests", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -377,24 +390,22 @@ export default function DealersHubClient({
 
             {/* Tab bar */}
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 pt-4 flex-wrap gap-y-2">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-wrap">
                     {tabs.map((t) => (
                         <button
                             key={t.key}
                             onClick={() => setTab(t.key)}
-                            className={`relative pb-3 px-4 text-sm font-medium transition-colors whitespace-nowrap ${
-                                tab === t.key ? "text-[#2d5a27]" : "text-gray-500 hover:text-gray-700"
-                            }`}
+                            className={`relative pb-3 px-4 text-sm font-medium transition-colors whitespace-nowrap ${tab === t.key ? "text-[#2d5a27]" : "text-gray-500 hover:text-gray-700"
+                                }`}
                         >
                             {t.label}
                             {t.badge !== undefined && (
-                                <span className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                                    tab === t.key
-                                        ? t.key === "reviewed"
-                                            ? "bg-[#E6F1FB] text-[#185FA5]"
-                                            : "bg-[#EAF3DE] text-[#2d5a27]"
-                                        : "bg-gray-100 text-gray-500"
-                                }`}>
+                                <span className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${tab === t.key
+                                    ? t.key === "reviewed"
+                                        ? "bg-[#E6F1FB] text-[#185FA5]"
+                                        : "bg-[#EAF3DE] text-[#2d5a27]"
+                                    : "bg-gray-100 text-gray-500"
+                                    }`}>
                                     {t.badge}
                                 </span>
                             )}
@@ -457,9 +468,9 @@ export default function DealersHubClient({
                             <form onSubmit={handleSubmit}>
                                 <div className="px-6 py-5 flex flex-col gap-4 max-h-[60vh] overflow-y-auto">
                                     {[
-                                        { name: "firmName", label: "Firm Name", placeholder: "Firm / Shop", required: true },
-                                        { name: "gstNumber", label: "GST Number", placeholder: "GST", mono: true },
-                                        { name: "mobileNo", label: "Mobile No", placeholder: "+91 98765 43210", type: "tel", required: true },
+                                        { name: "firm_name", label: "Firm Name", placeholder: "Firm / Shop", required: true },
+                                        { name: "gst_number", label: "GST Number", placeholder: "GST", mono: true },
+                                        { name: "mobile_no", label: "Mobile No", placeholder: "+91 98765 43210", type: "tel", required: true },
                                         { name: "district", label: "District", placeholder: "District", required: true },
                                     ].map(({ name, label, placeholder, type, required, mono }) => (
                                         <div key={name}>
@@ -484,15 +495,22 @@ export default function DealersHubClient({
                                         <label className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1 block">
                                             Category Interest <span className="text-red-400">*</span>
                                         </label>
-                                        <select name="categoryInterest" value={form.categoryInterest}
-                                            onChange={handleChange} required
-                                            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm
-                                                text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2d5a27]/20 focus:border-[#2d5a27]">
-                                            <option value="" disabled>Select category</option>
-                                            <option>Water-Soluble Fertilizers</option>
-                                            <option>Micronutrients</option>
-                                            <option>Bio-Stimulants</option>
-                                            <option>Crop Protection</option>
+                                        <select
+                                            name="category_interest"
+                                            value={form.category_interest}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2d5a27]/20 focus:border-[#2d5a27]"
+                                        >
+                                            <option value="" disabled>
+                                                Select category
+                                            </option>
+
+                                            {categories?.map((cat) => (
+                                                <option key={cat.id} value={cat.id}>
+                                                    {cat.name}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
 
@@ -500,7 +518,7 @@ export default function DealersHubClient({
                                         <label className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1 block">
                                             Monthly Volume <span className="text-gray-300">(optional)</span>
                                         </label>
-                                        <input name="monthlyVolume" value={form.monthlyVolume}
+                                        <input name="monthly_volume" value={form.monthly_volume}
                                             onChange={handleChange} placeholder="Approx. movement"
                                             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-800
                                                 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2d5a27]/20 focus:border-[#2d5a27]" />
