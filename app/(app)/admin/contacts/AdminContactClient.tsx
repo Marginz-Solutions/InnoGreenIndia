@@ -300,7 +300,7 @@ export default function AdminContactClient({ contactData }: { contactData: Conta
   const d = isEditing ? draft : data;
 
   return (
-    <div className="min-h-screen text-gray-900">
+    <div className="min-h-screen">
       <Breadcrumb section="Contact" />
 
       {/* Edit Banner */}
@@ -390,9 +390,9 @@ export default function AdminContactClient({ contactData }: { contactData: Conta
             </div>
 
             {/* GPS */}
-            <div className="bg-[#111211] border border-white/[0.07] rounded-[18px] p-6">
+            <div className="bg-gradient-to-r from-[#242c26] to-[#1f7a36] border border-white/[0.07] rounded-[18px] p-6 text-white">
               <SectionHeader icon={Navigation} label="GPS Telemetry" accent />
-              <div className="grid grid-cols-2 gap-[18px]">
+              <div className="grid grid-cols-2 gap-[18px] text-white">
                 <Field label="Latitude" name="lat" value={String(d?.lat)} isEditing={isEditing} onChange={handleChange} mono dark />
                 <Field label="Longitude" name="lng" value={String(d?.lng)} isEditing={isEditing} onChange={handleChange} mono dark />
                 <Field label="Altitude" name="altitude" value={d?.altitude} isEditing={isEditing} onChange={handleChange} mono dark />

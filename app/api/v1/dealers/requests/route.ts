@@ -10,9 +10,9 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("dealers")
-    .select("*")
-    .or(`status.eq.new,and(status.eq.closed,submittedAt.gte.${last24Hours})`)
-    .order("submittedAt", { ascending: false });
+    .select("*, categories:category_interest (id, name)")
+    .or(`status.eq.new,and(status.eq.closed,submitted_at.gte.${last24Hours})`)
+    .order("submitted_at", { ascending: false });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -45,14 +45,14 @@ export async function PATCH(request: Request) {
 
 
   if (status === "reviewed") {
-    updates.reviewedAt = new Date().toISOString();
+    updates.reviewed_at = new Date().toISOString();
   }
 
   const { data, error } = await supabase
     .from("dealers")
     .update(updates)
     .eq("id", id)
-    .select()
+    .select(`*, categories:category_interest (id, name)`)
     .single();
 
   if (error) {
@@ -69,17 +69,17 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const {
-      firmName,
-      gstNumber,
-      mobileNo,
+      firm_name,
+      gst_number,
+      mobile_no,
       district,
-      categoryInterest,
-      monthlyVolume,
+      category_interest,
+      monthly_volume,
       status,
     } = body;
 
     // Basic validation
-    if (!firmName || !gstNumber || !mobileNo || !district || !categoryInterest) {
+    if (!firm_name || !gst_number || !mobile_no || !district || !category_interest) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -90,17 +90,23 @@ export async function POST(request: Request) {
       .from("dealers")
       .insert([
         {
-          firmName,
-          gstNumber,
-          mobileNo,
+          firm_name,
+          gst_number,
+          mobile_no,
           district,
-          categoryInterest,
-          monthlyVolume: monthlyVolume || null,
+          category_interest,
+          monthly_volume: monthly_volume || null,
           status: status || "new",
-          submittedAt: new Date().toISOString(),
+          submitted_at: new Date().toISOString(),
         },
       ])
-      .select()
+      .select(`
+    *,
+    categories:category_interest (
+      id,
+      name
+    )
+  `)
       .single();
 
     if (error) {
