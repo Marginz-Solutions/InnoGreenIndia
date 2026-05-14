@@ -3,7 +3,8 @@ export type SidebarSection =
 | 'products'
 | 'brands'
 | 'dealer'
-| 'contacts';
+| 'contacts'
+| 'categories';
 
 export interface PulseItem {
 id: string;
@@ -24,6 +25,14 @@ sku: string;
 featured: boolean;
 status: 'active' | 'inactive';
 tags: string[];
+}
+
+export interface Category {
+id: string;
+name: string;
+slug: string;
+created_at?: string;
+updated_at?: string;
 }
 
 export interface Brand {

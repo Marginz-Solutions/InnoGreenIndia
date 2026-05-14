@@ -15,6 +15,7 @@ const SECTION_PATHS: Record<SidebarSection, string> = {
   brands: '/admin/brands',
   dealer: '/admin/dealers',
   contacts: '/admin/contacts',
+  categories: '/admin/categories',
 };
 
 const getSectionFromPathname = (pathname: string): SidebarSection => {
@@ -23,6 +24,7 @@ const getSectionFromPathname = (pathname: string): SidebarSection => {
   if(pathname.startsWith('/admin/dealers')) return 'dealer';
   if(pathname.startsWith('/admin/products')) return 'products';
   if(pathname.startsWith('/admin/pulse')) return 'pulse';
+  if(pathname.startsWith('/admin/categories')) return 'categories';
   return 'pulse';
 };
 
