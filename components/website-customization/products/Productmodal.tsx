@@ -2,9 +2,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  User,
-  Phone,
-  Mail,
   Tag,
   Info,
   Package,
@@ -21,6 +18,7 @@ import { Textarea } from '../form/TextArea';
 import { Toggle } from '../shared/Toggle';
 import { Product, Brand, Category } from '@/components/website-customization/types/common.types';
 import { TagInput } from './Taginput';
+import { uploadProductImage, deleteProductImage } from '@/lib/supabase/storage';
 
 
 // ─── Section divider ───────────────────────────────────────────────────────────
@@ -57,9 +55,6 @@ const empty = (): Omit<Product, 'id' | 'createdAt' | 'updatedAt'> => ({
   description: '',
   shortDescription: '',
   imageUrl: '',
-  contactName: '',
-  contactPhone: '',
-  contactEmail: '',
   tags: [],
   isActive: true,
   sku: '',
@@ -90,6 +85,8 @@ export const ProductModal = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState('');
   const [slugLocked, setSlugLocked] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Sync form when editProduct changes
   useEffect(() => {
@@ -106,9 +103,18 @@ export const ProductModal = ({
 
       setSlugLocked(true);
     } else {
-      setForm(empty());
-      setSlugLocked(false);
-    }
+  setForm(empty());
+
+  setSlugLocked(false);
+
+  setImagePreview("");
+
+  setSelectedFile(null);
+
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";
+  }
+}
   }, [editProduct, open]);
 
   const set = <K extends keyof typeof form>(key: K, val: (typeof form)[K]) =>
@@ -120,53 +126,68 @@ export const ProductModal = ({
   };
 
   const handleImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file =
+    e.target.files?.[0];
 
-    if (!file) return;
+  if (!file) return;
 
-    // Validate type
-    if (
-      ![
-        'image/png',
-        'image/jpeg',
-        'image/webp',
-      ].includes(file.type)
-    ) {
-      setErrors((prev) => ({
-        ...prev,
-        imageUrl:
-          'Only PNG, JPG, WEBP allowed',
-      }));
-
-      return;
-    }
-
-    // Validate size
-    if (file.size > 2 * 1024 * 1024) {
-      setErrors((prev) => ({
-        ...prev,
-        imageUrl:
-          'Image must be below 2MB',
-      }));
-
-      return;
-    }
-
-    const previewUrl =
-      URL.createObjectURL(file);
-
-    setImagePreview(previewUrl);
-
-    // temporary local URL
-    set('imageUrl', previewUrl);
-
+  // Validate type
+  if (
+    ![
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "image/svg+xml",
+    ].includes(file.type)
+  ) {
     setErrors((prev) => ({
       ...prev,
-      imageUrl: '',
+      imageUrl:
+        "Only PNG, JPG, WEBP, SVG allowed",
     }));
-  };
+
+    return;
+  }
+
+  // Validate size
+  if (
+    file.size >
+    2 * 1024 * 1024
+  ) {
+    setErrors((prev) => ({
+      ...prev,
+      imageUrl:
+        "Image must be below 2MB",
+    }));
+
+    return;
+  }
+
+  // store file only
+  setSelectedFile(file);
+
+  // local preview only
+  if (
+  imagePreview &&
+  imagePreview.startsWith("blob:")
+) {
+  URL.revokeObjectURL(
+    imagePreview
+  );
+}
+
+const previewUrl =
+  URL.createObjectURL(file);
+
+setImagePreview(previewUrl);
+
+  setErrors((prev) => ({
+    ...prev,
+    imageUrl: "",
+  }));
+};
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -202,51 +223,10 @@ export const ProductModal = ({
         "Description is required";
     }
 
-    // Contact name
-    if (!form.contactName.trim()) {
-      newErrors.contactName =
-        "Contact name is required";
-    }
-
     // Tags
     if (!form.tags.length) {
       newErrors.tags =
         "At least one tag is required";
-    }
-
-    if (!form.contactPhone.trim()) {
-      newErrors.contactPhone =
-        "Phone number is required";
-    }
-
-    if (!form.contactEmail.trim()) {
-      newErrors.contactEmail =
-        "Email is required";
-    }
-
-    // Phone
-    const phoneRegex =
-      /^(?:\+91)?[6-9]\d{9}$/
-    if (
-      form.contactPhone &&
-      !phoneRegex.test(
-        form.contactPhone.replace(/\s/g, "").replace("+91", "")
-      )
-    ) {
-      newErrors.contactPhone =
-        "Enter valid 10 digit phone number";
-    }
-
-    // Email
-    const emailRegex =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (
-      form.contactEmail &&
-      !emailRegex.test(form.contactEmail)
-    ) {
-      newErrors.contactEmail =
-        "Enter valid email address";
     }
 
     setErrors(newErrors);
@@ -254,37 +234,111 @@ export const ProductModal = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (
-    e: React.FormEvent
-  ) => {
-    e.preventDefault();
+  const handleSubmit = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
+
+  if (!validate()) return;
+
+  try {
     const cleanedForm = {
       ...form,
+
       name: form.name.trim(),
       slug: form.slug.trim(),
       sku: form.sku.trim(),
+
       shortDescription:
         form.shortDescription.trim(),
+
       description:
         form.description.trim(),
-      contactName:
-        form.contactName.trim(),
-      contactPhone:
-        form.contactPhone.trim(),
-      contactEmail:
-        form.contactEmail.trim(),
     };
-    if (!validate()) return;
-    const now = new Date().toISOString();
+
+    let imageUrl =
+      form.imageUrl;
+
+    // Upload ONLY on save
+    // Upload ONLY on save
+if (selectedFile) {
+  setUploading(true);
+
+  // store old image before replace
+  const oldImageUrl =
+    editProduct?.imageUrl;
+
+  // upload new image
+  imageUrl =
+    await uploadProductImage(
+      selectedFile
+    );
+
+  // delete old image AFTER successful upload
+  if (
+    oldImageUrl &&
+    oldImageUrl !== imageUrl
+  ) {
+    try {
+      await deleteProductImage(
+        oldImageUrl
+      );
+    } catch (err) {
+      console.error(
+        "Failed to delete old image",
+        err
+      );
+    }
+  }
+
+  setUploading(false);
+}
+
+    const now =
+      new Date().toISOString();
+
     const product: Product = {
-      id: editProduct?.id ?? String(Date.now()),
-      createdAt: editProduct?.createdAt ?? now,
+      id:
+        editProduct?.id ??
+        String(Date.now()),
+
+      createdAt:
+        editProduct?.createdAt ??
+        now,
+
       updatedAt: now,
+
       ...cleanedForm,
+
+      imageUrl,
     };
-    onSave(product);
+
+    await onSave(product);
+
+    setSelectedFile(null);
+
+    if (
+  imagePreview &&
+  imagePreview.startsWith("blob:")
+) {
+  URL.revokeObjectURL(
+    imagePreview
+  );
+}
+
+setImagePreview("");
+
+if (fileInputRef.current) {
+  fileInputRef.current.value = "";
+}
+
     onClose();
-  };
+  } catch (err) {
+    console.error(err);
+
+    setUploading(false);
+  }
+};
 
   return (
     <Modal
@@ -302,23 +356,23 @@ export const ProductModal = ({
         >
           <div className="space-y-3">
             <div
-  onClick={() =>
-    fileInputRef.current?.click()
-  }
-  className="cursor-pointer"
->
-  <ImageUploadBox
-    label="Click to upload product image (PNG, JPG, WEBP)"
-  />
-</div>
+              onClick={() =>
+                fileInputRef.current?.click()
+              }
+              className="cursor-pointer"
+            >
+              <ImageUploadBox
+                label="Click to upload product image (PNG, JPG, WEBP)"
+              />
+            </div>
 
-<input
-  ref={fileInputRef}
-  type="file"
-  accept="image/png,image/jpeg,image/webp"
-  onChange={handleImageChange}
-  className="hidden"
-/>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={handleImageChange}
+              className="hidden"
+            />
 
             {imagePreview && (
               <img
@@ -426,42 +480,6 @@ export const ProductModal = ({
           />
         </FormField>
 
-        {/* ── Contact ── */}
-        <Section icon={User} label="Contact" />
-
-        <FormField label="Contact Name" error={errors.contactName}>
-          <Input
-            value={form.contactName}
-            onChange={(e) => set('contactName', e.target.value)}
-            placeholder="Rajesh Kumar"
-          />
-        </FormField>
-
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Contact Phone" error={errors.contactPhone}>
-            <div className="relative">
-              <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#61756a]" />
-              <Input
-                value={form.contactPhone}
-                onChange={(e) => set('contactPhone', e.target.value)}
-                placeholder="+91 98765 43210"
-                className="pl-9"
-              />
-            </div>
-          </FormField>
-          <FormField label="Contact Email" error={errors.contactEmail}>
-            <div className="relative">
-              <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#61756a]" />
-              <Input
-                value={form.contactEmail}
-                onChange={(e) => set('contactEmail', e.target.value)}
-                placeholder="contact@brand.com"
-                className="pl-9"
-              />
-            </div>
-          </FormField>
-        </div>
-
         {/* ── Settings ── */}
         <Section icon={Settings} label="Settings" />
 
@@ -495,10 +513,15 @@ export const ProductModal = ({
         {/* ── Actions ── */}
         <div className="flex gap-3 pt-1">
           <button
-            type="submit"
+            disabled={uploading}
             className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1f7a36] hover:bg-[#166534] text-white text-sm font-semibold rounded-xl transition-colors duration-150"
           >
-            {editProduct ? 'Save Changes' : 'Add Product'}
+            {uploading
+              ? "Uploading..."
+              : editProduct
+                ? "Save Changes"
+                : "Add Product"
+            }
           </button>
           <button
             type="button"

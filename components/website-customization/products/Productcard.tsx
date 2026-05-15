@@ -121,33 +121,6 @@ export const ProductCard = ({
           </div>
         )}
 
-        {/* Contact info */}
-        {(p.contactName || p.contactEmail || p.contactPhone) && (
-          <div className="py-2.5 mb-3 border-t border-b border-[#f0f8f1] space-y-1">
-            {p.contactName && (
-              <p className="text-xs text-[#61756a] font-medium truncate">{p.contactName}</p>
-            )}
-            <div className="flex items-center gap-3">
-              {p.contactPhone && (
-                <a
-                  href={`tel:${p.contactPhone}`}
-                  className="inline-flex items-center gap-1 text-[11px] text-[#61756a] hover:text-[#1f7a36] transition-colors"
-                >
-                  <Phone size={10} /> {p.contactPhone}
-                </a>
-              )}
-              {p.contactEmail && (
-                <a
-                  href={`mailto:${p.contactEmail}`}
-                  className="inline-flex items-center gap-1 text-[11px] text-[#61756a] hover:text-[#1f7a36] transition-colors truncate"
-                >
-                  <Mail size={10} /> {p.contactEmail}
-                </a>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Actions */}
         <div className="flex gap-2">
           <button

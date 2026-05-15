@@ -14,6 +14,9 @@ import {
   X,
 } from 'lucide-react';
 
+import { toast } from "sonner";
+import { api } from "@/lib/axiosInstance";
+import { deleteProductImage } from "@/lib/supabase/storage";
 import { Breadcrumb } from '@/components/website-customization/shared/Breadcrumb';
 import { Pagination } from '@/components/website-customization/shared/Pagination';
 import { StatusBadge } from '@/components/website-customization/shared/StatusBadge';
@@ -40,11 +43,10 @@ const FilterPill = ({
 }) => (
   <button
     onClick={onClick}
-    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150 ${
-      active
+    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150 ${active
         ? 'bg-[#1f7a36] text-white border-[#1f7a36] shadow-sm'
         : 'bg-white text-[#61756a] border-[#d1dfd5] hover:border-[#1f7a36] hover:text-[#1f7a36]'
-    }`}
+      }`}
   >
     {Icon && <Icon size={11} />}
     {label}
@@ -98,10 +100,10 @@ export default function ProductsClient({
   };
 
   const getBrandName = (id?: string | null) =>
-  brands.find((b) => b.id === id)?.name ?? "—";
+    brands.find((b) => b.id === id)?.name ?? "—";
 
   const getCategoryName = (id?: string | null) =>
-  categories.find((c) => c.id === id)?.name ?? "—";
+    categories.find((c) => c.id === id)?.name ?? "—";
 
   // ── Filtered items ──
   const filtered = useMemo(() => {
@@ -109,10 +111,18 @@ export default function ProductsClient({
       const q = filters.query.toLowerCase();
       const matchQuery =
         !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        p.shortDescription.toLowerCase().includes(q) ||
-        p.tags.some((t) => t.toLowerCase().includes(q));
+        (p.name ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        (p.sku ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        (p.shortDescription ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        (p.tags ?? []).some((t) =>
+          t.toLowerCase().includes(q)
+        );
 
       const matchCat =
         filters.category === 'all' || p.categoryId === filters.category;
@@ -146,114 +156,131 @@ export default function ProductsClient({
   const openAdd = () => { setEditProduct(null); setModalOpen(true); };
   const openEdit = (p: Product) => { setEditProduct(p); setModalOpen(true); };
 
-  const handleDelete = (id: string) =>
-    setItems((prev) => prev.filter((p) => p.id !== id));
+  const handleDelete = async (
+    id: string
+  ) => {
+    try {
+      const product =
+        items.find((p) => p.id === id);
 
-  const handleToggleFeatured = async (
-  id: string
-) => {
-  try {
-    const product = items.find(
-      (p) => p.id === id
-    );
+      if (!product) return;
 
-    if (!product) return;
-
-    const updatedFeatured =
-      !product.featured;
-
-    const res = await fetch(
-      `/api/v1/products/${id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type":
-            "application/json",
-        },
-
-        body: JSON.stringify({
-          ...product,
-          featured: updatedFeatured,
-        }),
-      }
-    );
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      console.error(result.error);
-      return;
-    }
-
-    setItems((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? result.data
-          : p
-      )
-    );
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-  const handleSave = async (product: Product) => {
-  try {
-    // ── CREATE ─────────────────────────────
-    if (!editProduct) {
-      const res = await fetch("/api/v1/products", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(product),
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        console.error(result.error);
-        return;
+      // delete image first
+      if (product.imageUrl) {
+        await deleteProductImage(
+          product.imageUrl
+        );
       }
 
-      setItems((prev) => [result.data, ...prev]);
-    }
-
-    // ── UPDATE ─────────────────────────────
-    else {
-      const res = await fetch(
-        `/api/v1/products/${product.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(product),
-        }
+      // delete db row
+      await api.delete(
+        `/products/${id}`
       );
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        console.error(result.error);
-        return;
-      }
 
       setItems((prev) =>
-        prev.map((p) =>
-          p.id === product.id
-            ? result.data
-            : p
+        prev.filter(
+          (p) => p.id !== id
         )
       );
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong"
+      );
     }
+  };
 
-    setModalOpen(false);
-    setEditProduct(null);
-  } catch (err) {
-    console.error(err);
-  }
-};
+  const handleToggleFeatured =
+    async (id: string) => {
+      try {
+        const product =
+          items.find(
+            (p) => p.id === id
+          );
+
+        if (!product) return;
+
+        const updatedFeatured =
+          !product.featured;
+
+        const result =
+          await api.patch(
+            `/products/${id}`,
+            {
+              ...product,
+              featured:
+                updatedFeatured,
+            }
+          );
+
+        setItems((prev) =>
+          prev.map((p) =>
+            p.id === id
+              ? result.data
+              : p
+          )
+        );
+      } catch (err) {
+        toast.error(
+          err instanceof Error
+            ? err.message
+            : "Something went wrong"
+        );
+      }
+    };
+
+  const handleSave = async (
+    product: Product
+  ) => {
+    try {
+      const payload = {
+        ...product,
+
+        tags: product.tags ?? [],
+      };
+
+      // CREATE
+      if (!editProduct) {
+        const result =
+          await api.post(
+            "/products",
+            payload
+          );
+
+        setItems((prev) => [
+          result.data,
+          ...prev,
+        ]);
+      }
+
+      // UPDATE
+      else {
+        const result =
+          await api.patch(
+            `/products/${product.id}`,
+            payload
+          );
+
+        setItems((prev) =>
+          prev.map((p) =>
+            p.id === product.id
+              ? result.data
+              : p
+          )
+        );
+      }
+
+      setModalOpen(false);
+      setEditProduct(null);
+    } catch (err) {
+      toast.error(
+  err instanceof Error
+    ? err.message
+    : "Something went wrong"
+);
+    }
+  };
 
   // ── KPIs ──
   const kpis = [
@@ -427,7 +454,7 @@ export default function ProductsClient({
               ? 'Try adjusting your search or filters'
               : 'Add your first product to display on the website'
           }
-          onAdd={activeFiltersCount > 0 || filters.query ? () => {} : openAdd}
+          onAdd={activeFiltersCount > 0 || filters.query ? () => { } : openAdd}
         />
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
