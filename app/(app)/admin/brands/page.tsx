@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Briefcase, Plus, Search, Edit2, Trash2, Globe, SlidersHorizontal, CheckCircle, XCircle, X, Loader2 } from 'lucide-react';
 
 import type { Brand, Category } from '@/components/website-customization/types/common.types';
 import { StatusBadge } from '@/components/website-customization/shared/StatusBadge';
-import { Toggle } from '@/components/website-customization/shared/Toggle';
 import { EmptyState } from '@/components/website-customization/shared/EmptyState';
 import { Breadcrumb } from '@/components/website-customization/shared/Breadcrumb';
 import KpiCard from '@/components/website-customization/shared/KpiCard';
@@ -132,29 +131,6 @@ export default function BrandsPage() {
     }
   };
 
-  const toggleStatus = async (b: Brand) => {
-    setError(null);
-    try {
-      const fd = new FormData();
-      fd.append('name', b.name);
-      fd.append('description', b.description ?? '');
-      fd.append('websiteUrl', b.websiteUrl ?? '');
-      fd.append('tags', JSON.stringify(b.tags));
-      fd.append('categoryIds', JSON.stringify(b.categories.map(c => c.id)));
-      fd.append('contact', JSON.stringify({
-        name: b.contact?.name ?? '', email: b.contact?.email ?? '',
-        phoneNo: b.contact?.phoneNo ?? '', whatsapp: b.contact?.whatsapp ?? '',
-        addressLine1: b.contact?.addressLine1 ?? '', addressLine2: b.contact?.addressLine2 ?? '',
-        city: b.contact?.city ?? '', state: b.contact?.state ?? '', pincode: b.contact?.pincode ?? '',
-      }));
-      fd.append('isActive', String(!b.isActive));
-      const res = await api.patch(`/brands/${b.id}`, fd) as { data: Brand };
-      if (res.data) setItems(prev => prev.map(x => x.id === b.id ? res.data : x));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not update status');
-    }
-  };
-
   const handleSave = async (fd: FormData) => {
     setSaving(true);
     setSaveError(null);
@@ -256,16 +232,15 @@ export default function BrandsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {items.map(b => (
               <div key={b.id} className="card flex flex-col gap-4">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-1">
                   <div className="w-16 h-16 rounded-2xl bg-[#edf8ee] border border-[#e2ece3] flex items-center justify-center shrink-0 overflow-hidden">
                     {b.logoUrl
-                      ? <img src={b.logoUrl} alt="" className="w-full h-full object-contain p-1" />
+                      ? <img src={b.logoUrl} alt="" className="w-full h-full object-contain p-1 rounded-xl" />
                       : <Briefcase size={24} className="text-[#1f7a36]" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-[#102018] truncate">{b.name}</h3>
-                      <StatusBadge active={b.isActive} />
+                      <h3 className="text-lg! font-bold text-[#102018] truncate">{b.name}</h3>
                     </div>
                     {b.websiteUrl ? (
                       <a href={b.websiteUrl.startsWith('http') ? b.websiteUrl : `https://${b.websiteUrl}`}
@@ -290,8 +265,7 @@ export default function BrandsPage() {
                 )}
                 <div className="flex items-center justify-between pt-2 border-t border-[#e2ece3]">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#61756a]">Active:</span>
-                    <Toggle checked={b.isActive} onChange={() => void toggleStatus(b)} />
+                    <StatusBadge active={b.isActive} />
                   </div>
                   <div className="flex gap-2">
                     <button type="button" onClick={() => openEdit(b)} className="btn" style={{ padding: '7px 10px' }}>

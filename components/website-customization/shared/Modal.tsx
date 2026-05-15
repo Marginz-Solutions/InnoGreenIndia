@@ -20,7 +20,7 @@ export const Modal = ({
     <div className="fixed inset-0 z-10! flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl w-full max-w-lg max-h-[92vh] flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between px-6 py-5 border-b border-[#e2ece3] shrink-0">
-          <h3 className="text-base font-bold text-[#102018]">{title}</h3>
+          <h2 className="text-xl! mb-0! font-bold text-[#102018]">{title}</h2>
 
           <button
             onClick={onClose}
