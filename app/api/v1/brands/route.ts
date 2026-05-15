@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         ...(search && { name: { contains: search, mode: 'insensitive' } }),
         ...(status === 'active' && { isActive: true }),
         ...(status === 'inactive' && { isActive: false }),
-        ...(categoryId && { brand_categories: { some: { category_id: categoryId } } }),
+        ...(categoryId !== 'all' && { brand_categories: { some: { category_id: categoryId } } }),
     };
 
     try {
