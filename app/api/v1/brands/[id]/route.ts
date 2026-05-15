@@ -50,6 +50,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         logoFile: formData.get('logo') as File || undefined,
         imageFile: formData.get('image') as File || undefined,
     };
+    const removeImage = formData.get('removeImage') === 'true';
 
     const validatedResult = updateBrandSchema.safeParse(rawInput);
 
@@ -72,11 +73,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             logoFile instanceof File 
                 ? uploadImage(logoFile, 'logos', supabase) 
                 : Promise.resolve(null),
-            imageFile ? (
-                imageFile instanceof File 
-                    ? uploadImage(imageFile, 'banner-images', supabase) 
-                    : Promise.resolve(null)
-            ) : Promise.resolve(null)
+            imageFile instanceof File 
+                ? uploadImage(imageFile, 'banner-images', supabase) 
+                : Promise.resolve(null)
         ]);
 
         if(logo) {
@@ -86,7 +85,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         }
         if(image) {
             uploadedPaths.push(image.path);
-            if(existing.imageUrl) {
+            if(removeImage && existing.imageUrl) {
                 const old = extractStoragePath(existing.imageUrl, 'brand-assets');
                 if(old) pathsToDelete.push(old);
             }
@@ -102,6 +101,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
                     ...(logo && { logoUrl: logo.url }),
                     ...(image && { imageUrl: image.url }),
                     ...(typeof isActive === 'boolean' && { isActive }),
+                    ...(removeImage && !image && { imageUrl: null }),
                 },
             });
 

@@ -137,6 +137,10 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
     fd.append('isActive', String(form.isActive));
     if(form.logoFile) fd.append('logo', form.logoFile);
     if(form.imageFile) fd.append('image', form.imageFile);
+
+    if(!form.imagePreview && editBrand?.imageUrl) {
+      fd.append('removeImage', 'true');
+    }
     
     try {
       await onSave(fd);

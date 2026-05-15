@@ -240,7 +240,7 @@ export default function BrandsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg! font-bold text-[#102018] truncate">{b.name}</h3>
+                      <h3 className="text-lg! font-bold text-[#102018] truncate" title={b.name}>{b.name}</h3>
                     </div>
                     {b.websiteUrl ? (
                       <a href={b.websiteUrl.startsWith('http') ? b.websiteUrl : `https://${b.websiteUrl}`}
