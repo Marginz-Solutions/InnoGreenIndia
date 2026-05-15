@@ -1,6 +1,7 @@
 // app/dashboard/page.tsx — Server Component
 import { createClient } from "@/lib/supabase/server";
 import ProductsDashboardClient from "./ProductsDashboardClient";
+import { api } from "@/lib/axiosInstance";
 
 export type Product = {
     id: string;
@@ -56,34 +57,35 @@ function ErrorCard({ message }: { message: string }) {
 export default async function DashboardPage() {
     const supabase = await createClient();
 
-    const [productsRes, categoriesRes, brandsRes] = await Promise.all([
-        supabase.from("products").select("*").order("createdAt", { ascending: false }),
-        supabase.from("categories").select("*").order("name"),
-        supabase.from("brands").select("*").order("name"),
-    ]);
+    try {
+        const [productsRes, categoriesRes, brandsRes] = await Promise.all([
+            supabase.from("products").select("*").order("createdAt", { ascending: false }),
+            supabase.from("categories").select("*").order("name"),
+            supabase.from("brands").select("*").order("name"),
+        ]);
 
-    const [enquiriesRes, reviewedRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/dealers/requests`, {
-            cache: "no-store",
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/dealers/reviewed`, {
-            cache: "no-store",
-        }),
-    ]);
+        if (productsRes.error) return <ErrorCard message={productsRes.error.message} />;
+        if (categoriesRes.error) return <ErrorCard message={categoriesRes.error.message} />;
+        if (brandsRes.error) return <ErrorCard message={brandsRes.error.message} />;
 
-    if (productsRes.error) return <ErrorCard message={productsRes.error.message} />;
-    if (categoriesRes.error) return <ErrorCard message={categoriesRes.error.message} />;
-    if (brandsRes.error) return <ErrorCard message={brandsRes.error.message} />;
-    if (enquiriesRes.error) return <ErrorCard message={enquiriesRes.error.message} />;
-    if (reviewedRes.error) return <ErrorCard message={reviewedRes.error.message} />;
+        // Axios calls
+        const [enquiriesRes, reviewedRes] = await Promise.all([
+            api.get('/dealers/requests'),
+            api.get('/dealers/reviewed'),
+        ]);
 
-    return (
-        <ProductsDashboardClient
-            products={productsRes.data ?? []}
-            categories={categoriesRes.data ?? []}
-            brands={brandsRes.data ?? []}
-            enquiries={(await enquiriesRes.json()).data ?? []}
-            dealers={(await reviewedRes.json()).data ?? []}
-        />
-    );
+        return (
+            <ProductsDashboardClient
+                products={productsRes.data ?? []}
+                categories={categoriesRes.data ?? []}
+                brands={brandsRes.data ?? []}
+                enquiries={enquiriesRes.data ?? []}
+                dealers={reviewedRes.data ?? []}
+            />
+        );
+
+    } catch (error: any) {
+        return <ErrorCard message={error.message || "Something went wrong"} />;
+    }
 }
+ 
