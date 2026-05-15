@@ -1,25 +1,25 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * This function is used to upload the brand logo and image to the specified bucket.
+ * This function is used to upload the brand logo and image to the specified folder.
  * If any error occurs during the upload process, it should throw an error which can be caught by the caller.
  * @param file - An object containing the logo file or image file.
- * @param bucketName - The name of the bucket where the files should be uploaded.
+ * @param folderName - The name of the folder where the files should be uploaded.
  * @param supabase - An instance of the Supabase client to interact with the storage API.
  * @returns {Promise<{ path: string; url: string }>} An object containing the path and public URL of the uploaded file if the upload is successful.
  * @throws Will throw an error if the upload fails for any reason.
  */
 export const uploadImage = async (
     file: File,
-    bucketName: string,
+    folderName: string,
     supabase: SupabaseClient
 ): Promise<{ path: string; url: string }> => {
     // Adding random number
     const ext = file.name.split('.').pop();
-    const path = `${bucketName}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    const path = `${folderName}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
     const buffer = await file.arrayBuffer();
 
-    const { error } = await supabase.storage.from(bucketName).upload(path, new Uint8Array(buffer), {
+    const { error } = await supabase.storage.from('brand-assets').upload(path, new Uint8Array(buffer), {
         upsert: false,
         contentType: file.type,
     });
@@ -28,7 +28,7 @@ export const uploadImage = async (
         throw new Error(`Error uploading file: ${error.message}`);
     }
 
-    const { data } = supabase.storage.from(bucketName).getPublicUrl(path);
+    const { data } = supabase.storage.from('brand-assets').getPublicUrl(path);
     return { path, url: data.publicUrl };
 }
 

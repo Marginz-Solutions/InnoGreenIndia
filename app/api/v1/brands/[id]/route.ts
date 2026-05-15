@@ -45,6 +45,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         websiteUrl: formData.get('websiteUrl') as string || '',
         tags: JSON.parse(formData.get('tags') as string || '[]'),
         categoryIds: JSON.parse(formData.get('categoryIds') as string || '[]'),
+        isActive: formData.get('isActive') === 'true',
         contact: JSON.parse(formData.get('contact') as string || '{}'),
         logoFile: formData.get('logo') as File || undefined,
         imageFile: formData.get('image') as File || undefined,
@@ -61,7 +62,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         return NextResponse.json({ error: 'Validation failed', details: fieldErrors }, { status: 400 });
     }
 
-    const { name, description, websiteUrl, tags, categoryIds, contact, logoFile, imageFile } = validatedResult.data;
+    const { name, description, websiteUrl, tags, categoryIds, contact, logoFile, imageFile, isActive } = validatedResult.data;
     const slug = generateSlug(name);
 
     const uploadedPaths: string[] = [];
@@ -69,11 +70,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     try {
         const [logo, image] = await Promise.all([
             logoFile instanceof File 
-                ? uploadImage(logoFile, 'brand-assets', supabase) 
+                ? uploadImage(logoFile, 'logos', supabase) 
                 : Promise.resolve(null),
             imageFile ? (
                 imageFile instanceof File 
-                    ? uploadImage(imageFile, 'brand-assets', supabase) 
+                    ? uploadImage(imageFile, 'banner-images', supabase) 
                     : Promise.resolve(null)
             ) : Promise.resolve(null)
         ]);
@@ -100,6 +101,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
                     name, slug, description, websiteUrl: websiteUrl || null, tags,
                     ...(logo && { logoUrl: logo.url }),
                     ...(image && { imageUrl: image.url }),
+                    ...(typeof isActive === 'boolean' && { isActive }),
                 },
             });
 

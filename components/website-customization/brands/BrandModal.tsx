@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, Info, Tag, Users, Settings, Phone, Mail } from 'lucide-react';
+import { Image, Info, Tag, Users, Settings, Phone, Mail, X } from 'lucide-react';
 
 import { Modal } from '@/components/website-customization/shared/Modal';
 import { FormField } from '@/components/website-customization/form/FormField';
@@ -69,9 +69,11 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
   const imageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if(!open) return;
+
     setFieldErrors({});
-    if (editBrand) {
+
+    if(editBrand) {
       setForm({
         name: editBrand.name,
         description: editBrand.description ?? '',
@@ -94,11 +96,12 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
         logoPreview: editBrand.logoUrl ?? null,
         imagePreview: editBrand.imageUrl ?? null,
       });
-    } else {
+    } 
+    else {
       setForm(initialState);
     }
-    if (logoRef.current) logoRef.current.value = '';
-    if (imageRef.current) imageRef.current.value = '';
+    if(logoRef.current) logoRef.current.value = '';
+    if(imageRef.current) imageRef.current.value = '';
   }, [open, editBrand]);
 
   const update = (field: keyof FormState, value: any) => setForm(prev => ({ ...prev, [field]: value }));
@@ -108,10 +111,11 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'image') => {
     const file = e.target.files?.[0] ?? null;
     const preview = file ? URL.createObjectURL(file) : null;
-    if (type === 'logo') {
+    if(type === 'logo') {
       setForm(prev => ({ ...prev, logoFile: file, logoPreview: preview }));
       setFieldErrors(prev => ({ ...prev, logoFile: '' }));
-    } else {
+    } 
+    else {
       setForm(prev => ({ ...prev, imageFile: file, imagePreview: preview }));
       setFieldErrors(prev => ({ ...prev, imageFile: '' }));
     }
@@ -120,7 +124,7 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
   const toggleCategory = (id: string) =>
     update('categoryIds', form.categoryIds.includes(id) ? form.categoryIds.filter(c => c !== id) : [...form.categoryIds, id]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setFieldErrors({});
     const fd = new FormData();
@@ -131,15 +135,15 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
     fd.append('categoryIds', JSON.stringify(form.categoryIds));
     fd.append('contact', JSON.stringify(form.contact));
     fd.append('isActive', String(form.isActive));
-    if (form.logoFile) fd.append('logo', form.logoFile);
-    if (form.imageFile) fd.append('image', form.imageFile);
+    if(form.logoFile) fd.append('logo', form.logoFile);
+    if(form.imageFile) fd.append('image', form.imageFile);
     
     try {
       await onSave(fd);
     } 
-    catch(e: any) {
-      if(e?.details && typeof e.details === 'object') {
-        setFieldErrors(e.details as Record<string, string>);
+    catch(error: any) {
+      if(error?.details && typeof error.details === 'object') {
+        setFieldErrors(error.details as Record<string, string>);
       }
     }
   };
@@ -155,7 +159,7 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
         {/* Media */}
         <Section icon={Image} label="Media" />
         <div className="grid grid-cols-2 gap-3">
-          <FormField label={`Logo${editBrand ? ' (optional)' : ' *'}`} error={getError('logoFile')}>
+          <FormField label="Logo *" error={getError('logoFile')}>
             <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden ${
               hasError('logoFile') ? 'border-red-500' : 'border-[#c5ddc8]'
             }`}>
@@ -168,16 +172,31 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
             </label>
           </FormField>
           <FormField label="Image (optional)" error={getError('imageFile')}>
-            <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden ${
-              hasError('imageFile') ? 'border-red-500' : 'border-[#c5ddc8]'
-            }`}>
-              {form.imagePreview
-                ? <img src={form.imagePreview} alt="banner" className="h-full w-full object-contain p-2" />
-                : <span className="text-xs text-[#61756a] font-medium text-center px-2">Banner / hero image</span>
-              }
-              <input ref={imageRef} type="file" name="image" accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                className="sr-only" onChange={e => handleFileChange(e, 'image')} />
-            </label>
+            <div className='relative'>
+              {form.imagePreview && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm(prev => ({ ...prev, imageFile: null, imagePreview: null }));
+                    if (imageRef.current) imageRef.current.value = '';
+                  }}
+                  className="absolute -top-1.5 -right-1 z-10 w-5 h-5 flex items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-700"
+                >
+                  <X size={12} />
+                </button>
+              )}
+
+              <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden ${
+                hasError('imageFile') ? 'border-red-500' : 'border-[#c5ddc8]'
+              }`}>
+                {form.imagePreview
+                  ? <img src={form.imagePreview} alt="banner" className="h-full w-full object-contain p-2" />
+                  : <span className="text-xs text-[#61756a] font-medium text-center px-2">Banner / hero image</span>
+                }
+                <input ref={imageRef} type="file" name="image" accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  className="sr-only" onChange={e => handleFileChange(e, 'image')} />
+              </label>
+            </div>
           </FormField>
         </div>
 
@@ -240,6 +259,17 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
             <Input value={form.contact.whatsapp} onChange={e => { updateContact('whatsapp', e.target.value); setFieldErrors(p => ({ ...p, 'contact.whatsapp': '' })); }}
               required placeholder="9876543210" className={hasError('contact.whatsapp') ? 'border-red-500' : ''} maxLength={10} />
           </FormField>
+          <label className="flex items-center gap-2 text-xs text-[#61756a] cursor-pointer -mt-1">
+            <input
+              type="checkbox"
+              onChange={e => {
+                if(e.target.checked) updateContact('whatsapp', form.contact.phoneNo);
+                if(!e.target.checked) updateContact('whatsapp', '')
+              }}
+              defaultValue={form.contact.phoneNo === form.contact.whatsapp ? 1 : 0}
+            />
+            Same as WhatsApp number
+          </label>
         </div>
         <FormField label="Email" error={getError('contact.email')}>
           <div className="relative">

@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
         tags: JSON.parse(formData.get('tags') as string || '[]'),
         categoryIds: JSON.parse(formData.get('categoryIds') as string || '[]'),
         contact: JSON.parse(formData.get('contact') as string || '{}'),
+        isActive: formData.get('isActive') === 'true',
         logoFile: formData.get('logo') as File | null,
         imageFile: formData.get('image') as File | null,
     };
@@ -144,14 +145,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Validation failed', details: fieldErrors }, { status: 400 });
     }
 
-    const { name, description, websiteUrl, tags, categoryIds, contact, logoFile, imageFile } = validatedResult.data;
+    const { name, description, websiteUrl, tags, categoryIds, contact, logoFile, imageFile, isActive } = validatedResult.data;
     const slug = generateSlug(name);
 
     const uploadedPaths: string[] = [];
     try {
         const [logo, image] = await Promise.all([
-            uploadImage(logoFile, 'brand-assets', supabase),
-            imageFile ? uploadImage(imageFile, 'brand-assets', supabase) : Promise.resolve(null),
+            uploadImage(logoFile, 'logos', supabase),
+            imageFile ? uploadImage(imageFile, 'banner-images', supabase) : Promise.resolve(null),
         ]);
 
         uploadedPaths.push(logo.path);
@@ -182,7 +183,7 @@ export async function POST(request: NextRequest) {
                 data: {
                     name, slug, description, websiteUrl: websiteUrl || null,
                     logoUrl: logo.url, imageUrl: image?.url ?? null,
-                    tags, isActive: true, contactId: newContact.id,
+                    tags, isActive, contactId: newContact.id,
                 },
             });
 
@@ -209,7 +210,11 @@ export async function POST(request: NextRequest) {
                     }
                 },
             });
-        }, { timeout: 10000, maxWait: 5000 });
+        }, { 
+            timeout: 10000, 
+            maxWait: 5000,
+            isolationLevel: 'Serializable' 
+        });
 
         const formatted = {
             ...brand,

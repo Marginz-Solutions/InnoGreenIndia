@@ -31,6 +31,7 @@ export const createBrandSchema = z.object({
         state: z.string().optional(),
         pincode: z.string().regex(/^[0-9]{6}$/, 'Must be exactly 6 digits').optional().or(z.literal('')),
     }),
+    isActive: z.boolean().optional(),
     logoFile: fileSchema,
     imageFile: fileSchema.optional().nullable(),
 });
