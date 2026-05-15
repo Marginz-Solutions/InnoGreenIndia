@@ -26,9 +26,6 @@ export interface Product {
   description: string;
   shortDescription: string;
   imageUrl?: string;
-  contactName: string;
-  contactPhone: string;
-  contactEmail: string;
   tags: string[];
   isActive: boolean;
   createdAt: string;

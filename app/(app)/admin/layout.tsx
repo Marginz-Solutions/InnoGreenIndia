@@ -8,6 +8,7 @@ import { MobileSidebar } from '@/components/website-customization/layout/MobileS
 import { PageHeader } from '@/components/website-customization/layout/PageHeader';
 import { Sidebar } from '@/components/website-customization/layout/Sidebar';
 import { SidebarSection } from '@/components/website-customization/types/common.types';
+import { Toaster } from "sonner";
 
 const SECTION_PATHS: Record<SidebarSection, string> = {
   pulse: '/admin/pulse',
@@ -71,6 +72,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
       </div>
+      <Toaster richColors />
     </AuthGuard>
   );
 }
