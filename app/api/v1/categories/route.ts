@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+import { getAuthContext } from '@/lib/auth';
+import { generateSlug } from '@/lib/utils';
+
+/**
+ * @method GET /api/v1/admin/categories
+ * @description Get all categories
+ */
 export async function GET() {
   const supabase = await createClient();
 
@@ -16,11 +23,13 @@ export async function GET() {
   return NextResponse.json({ data: data ?? [] });
 }
 
+/**
+ * @method POST /api/v1/admin/categories
+ * @description Create a new category with the given name
+ * @requires { name: string } - Name of the category to be created
+ */
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getAuthContext();
 
   if(!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -44,7 +53,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Category name already exists in the db' }, { status: 400 });
   }
 
-  const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+  const slug = generateSlug(name);
 
   const { data, error } = await supabase
     .from('categories')
