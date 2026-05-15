@@ -20,24 +20,7 @@ import { StatusBadge } from '@/components/website-customization/shared/StatusBad
 import { EmptyState } from '@/components/website-customization/shared/EmptyState';
 import { ProductCard } from '@/components/website-customization/products/Productcard';
 import { ProductModal } from '@/components/website-customization/products/Productmodal';
-import { Brand, Category, Product, ProductFilters } from '@/components/website-customization/products/types/Product.types';
-
-
-// ─── Static lookup data ────────────────────────────────────────────────────────
-const BRANDS: Brand[] = [
-  { id: 'b1', name: 'AgroShield' },
-  { id: 'b2', name: 'NutriGrow Labs' },
-  { id: 'b3', name: 'HarvestMaster' },
-  { id: 'b4', name: 'GreenRoots' },
-];
-
-const CATEGORIES: Category[] = [
-  { id: 'c1', name: 'Seeds' },
-  { id: 'c2', name: 'Fertilizers' },
-  { id: 'c3', name: 'Pesticides' },
-  { id: 'c4', name: 'Equipment' },
-  { id: 'c5', name: 'Herbicides' },
-];
+import { Brand, Category, Product, ProductFilters } from '@/components/website-customization/types/common.types';
 
 // ─── Mock Data ─────────────────────────────────────────────────────────────────
 
@@ -87,17 +70,15 @@ const KpiCard = ({
   </div>
 );
 
-// ─── Lookup helpers ────────────────────────────────────────────────────────────
-const getBrandName = (id: string) =>
-  BRANDS.find((b) => b.id === id)?.name ?? '—';
-const getCategoryName = (id: string) =>
-  CATEGORIES.find((c) => c.id === id)?.name ?? '—';
-
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function ProductsClient({
   initialProducts,
+  brands,
+  categories,
 }: {
   initialProducts: Product[];
+  brands: Brand[];
+  categories: Category[];
 }) {
   const [items, setItems] = useState<Product[]>(initialProducts);
   const [filters, setFilters] = useState<ProductFilters>({
@@ -115,6 +96,12 @@ export default function ProductsClient({
     setFilters((prev) => ({ ...prev, [key]: val }));
     setPage(1);
   };
+
+  const getBrandName = (id?: string | null) =>
+  brands.find((b) => b.id === id)?.name ?? "—";
+
+  const getCategoryName = (id?: string | null) =>
+  categories.find((c) => c.id === id)?.name ?? "—";
 
   // ── Filtered items ──
   const filtered = useMemo(() => {
@@ -162,10 +149,53 @@ export default function ProductsClient({
   const handleDelete = (id: string) =>
     setItems((prev) => prev.filter((p) => p.id !== id));
 
-  const handleToggleFeatured = (id: string) =>
-    setItems((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, featured: !p.featured } : p))
+  const handleToggleFeatured = async (
+  id: string
+) => {
+  try {
+    const product = items.find(
+      (p) => p.id === id
     );
+
+    if (!product) return;
+
+    const updatedFeatured =
+      !product.featured;
+
+    const res = await fetch(
+      `/api/v1/products/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body: JSON.stringify({
+          ...product,
+          featured: updatedFeatured,
+        }),
+      }
+    );
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      console.error(result.error);
+      return;
+    }
+
+    setItems((prev) =>
+      prev.map((p) =>
+        p.id === id
+          ? result.data
+          : p
+      )
+    );
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const handleSave = async (product: Product) => {
   try {
@@ -329,7 +359,7 @@ export default function ProductsClient({
             className="px-3 py-1.5 border border-[#d1dfd5] rounded-lg text-xs font-semibold bg-white text-[#61756a] focus:outline-none focus:border-[#1f7a36] transition-all"
           >
             <option value="all">All Categories</option>
-            {CATEGORIES.map((c) => (
+            {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
@@ -493,8 +523,8 @@ export default function ProductsClient({
         onClose={() => setModalOpen(false)}
         onSave={handleSave}
         editProduct={editProduct}
-        brands={BRANDS}
-        categories={CATEGORIES}
+        brands={brands}
+        categories={categories}
       />
     </div>
   );

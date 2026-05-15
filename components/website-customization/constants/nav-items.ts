@@ -3,7 +3,8 @@ BarChart3,
 Package,
 Briefcase,
 Users,
-Tag
+Tag,
+Contact
 } from 'lucide-react';
 
 import { SidebarSection } from '../types/common.types';
@@ -33,5 +34,10 @@ export const NAV_ITEMS = [
         id: 'categories' as SidebarSection,
         label: 'Categories',
         icon: Tag,
+    },
+    {
+        id: 'contacts' as SidebarSection,
+        label: 'Contacts',
+        icon: Contact,
     }
 ];

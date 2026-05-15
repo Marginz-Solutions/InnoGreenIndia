@@ -38,6 +38,7 @@ export interface Product {
   status: 'active' | 'inactive';
 }
 
+// ─── Filter State ──────────────────────────────────────────────────────────────
 export interface ProductFilters {
   query: string;
   category: string;
