@@ -1,55 +1,565 @@
 @import "tailwindcss";
-:root{
-  --bg:#07130b; --bg2:#0e1f12; --panel:#102017; --card:#ffffff; --text:#102018;
-  --muted:#61756a; --line:#dce8df; --brand:#1f7a36; --brand2:#5cab3d; --gold:#c9a646;
+
+:root {
+  --bg: #07130b;
+  --bg2: #0e1f12;
+  --panel: #102017;
+  --card: #ffffff;
+  --text: #102018;
+  --muted: #61756a;
+  --line: #dce8df;
+  --brand: #1f7a36;
+  --brand2: #5cab3d;
+  --gold: #c9a646;
 }
-*{box-sizing:border-box}
-html,body{min-height:100%}
-body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(180deg,#f6fbf7,#eff7f1);color:var(--text);position:relative;overflow-x:hidden}
-body::before{content:"IGIM  IGIM  IGIM  IGIM";position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(52px,10vw,140px);font-weight:900;letter-spacing:.24em;color:rgba(22,101,52,.045);transform:rotate(-24deg);pointer-events:none;z-index:0;white-space:nowrap}
-body::after{content:"";position:fixed;inset:0;background:radial-gradient(circle at top right, rgba(92,172,61,.09), transparent 30%), radial-gradient(circle at bottom left, rgba(31,122,54,.08), transparent 28%);pointer-events:none;z-index:0}
-body > *{position:relative;z-index:1}
-a{text-decoration:none;color:inherit}
-.topbar{background:linear-gradient(135deg,#07130b,#12311b 58%,#2b7a32);color:#fff;padding:16px 24px;position:sticky;top:0;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.18);border-bottom:1px solid rgba(255,255,255,.1)}
-.topbar .row{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
-.brand-wrap{display:flex;align-items:center;gap:14px}
-.brand-logo{width:56px;height:56px;object-fit:contain;border-radius:14px;background:rgba(255,255,255,.08);padding:4px;box-shadow:0 6px 16px rgba(0,0,0,.16)}
-.brand h1{margin:0;font-size:24px;letter-spacing:.01em}
-.brand p{margin:5px 0 0;color:rgba(255,255,255,.86);font-size:13px}
-.nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.nav a{padding:10px 14px;border:1px solid rgba(255,255,255,.16);border-radius:999px;color:#fff;font-size:13px;background:rgba(255,255,255,.06);backdrop-filter:blur(4px);cursor:pointer}
-.nav a:hover,.nav a.active{background:#fff;color:#0b1c0f}
-.container{max-width:1380px;margin:0 auto;padding:24px}
-.hero{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:22px}
-.panel{background:linear-gradient(180deg,#ffffff,#f8fcf8);border:1px solid #e2ece3;border-radius:22px;padding:22px;box-shadow:0 10px 30px rgba(15,23,42,.06)}
-.panel.dark{background:linear-gradient(160deg,#0b1d10,#184422);color:#fff;border:none;overflow:hidden;position:relative}
-.panel.dark::after{content:"IGIM";position:absolute;right:18px;bottom:-10px;font-size:96px;font-weight:900;line-height:1;color:rgba(255,255,255,.06);pointer-events:none}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0}
-.kpi{background:#fff;border:1px solid #e2ece3;border-radius:18px;padding:18px;box-shadow:0 10px 20px rgba(15,23,42,.04)}
-.kpi .label{color:#64748b;font-size:13px;margin-bottom:8px}
-.kpi .value{font-size:28px;font-weight:800;color:#10361c}
-.card{background:#fff;border:1px solid #e2ece3;border-radius:20px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.04)}
-.card h2,.panel h2{margin:0 0 12px;font-size:18px}.card h3{margin:0 0 10px;font-size:16px}
-.muted{color:var(--muted)}
-.badge{display:inline-block;padding:7px 10px;border-radius:999px;background:#edf8ee;color:#166534;font-size:12px;font-weight:700}
-.table-wrap{overflow:auto;border:1px solid #e2ece3;border-radius:14px;background:white}
-table{width:100%;border-collapse:collapse;background:#fff} thead th{position:sticky;top:0;background:#edf8ee;color:#14532d;font-size:12px;text-transform:uppercase;letter-spacing:.03em;padding:12px;text-align:left;border-bottom:1px solid #dbe8dc} tbody td{padding:11px 12px;border-bottom:1px solid #eef2f0;vertical-align:top;font-size:14px} tbody tr:hover{background:#f7fcf8}
-.searchbar{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 18px}
-.searchbar input,.searchbar select,.login-card input{padding:12px 14px;border:1px solid #cfe0d2;border-radius:12px;min-width:220px;background:#fff;width:100%}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:12px;border:1px solid #dbe8dc;background:#fff;font-weight:700;color:#102018;cursor:pointer}
-.btn.primary{background:linear-gradient(135deg,#1f7a36,#2f9b43);color:#fff;border-color:#1f7a36}
-.btn.secondary{background:#fef8e7;border-color:#e6d39d;color:#7c5a06}
-.list{display:grid;gap:12px}.list .item{padding:14px;border:1px solid #e2ece3;border-radius:14px;background:#fff}
-.footer{margin-top:28px;padding:22px;color:#61756a;font-size:13px;text-align:center}
-.sheet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.sheet-card{padding:18px;border-radius:18px;background:linear-gradient(180deg,#fff,#f8fcf8);border:1px solid #e2ece3}.sheet-card h3{margin:0 0 10px}
-.inline-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.tag{font-size:12px;padding:6px 9px;border-radius:999px;background:#edf8ee;color:#166534;font-weight:600}
-.note{padding:14px 16px;border-radius:14px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}
-.map-frame{width:100%;height:78vh;border:1px solid #d7e6da;border-radius:18px;background:#fff;box-shadow:0 10px 30px rgba(15,23,42,.05)}
-.map-frame iframe{width:100%;height:100%;border:0;border-radius:18px}
-.login-shell{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#07130b,#12311b 60%,#2b7a32)}
-.login-shell::before{content:"IGIM";position:fixed;inset:auto auto 6% 5%;font-size:min(18vw,220px);font-weight:900;letter-spacing:.08em;color:rgba(255,255,255,.06);pointer-events:none}
-.login-card{width:min(460px,100%);background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.45);border-radius:28px;padding:28px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
-.login-head{display:flex;align-items:center;gap:16px;margin-bottom:18px}.login-head img{width:76px;height:76px;object-fit:contain}.login-card h1{margin:0;font-size:28px;color:#10361c}.login-card p{margin:6px 0 0;color:#577266}.login-card label{display:block;font-size:13px;font-weight:700;margin:14px 0 8px;color:#21432a}.error{display:none;margin-top:14px;padding:12px 14px;border-radius:12px;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3}.error.show{display:block}.login-foot{margin-top:16px;color:#5f6f66;font-size:12px;text-align:center}
-.quick-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
-@media (max-width:1100px){.hero,.kpis,.sheet-grid{grid-template-columns:1fr 1fr}.col-4,.col-5,.col-6,.col-7,.col-8{grid-column:span 12}}
-@media (max-width:700px){.hero,.kpis,.sheet-grid{grid-template-columns:1fr}.container{padding:16px}.topbar{padding:16px}.brand h1{font-size:20px}.brand-logo{width:48px;height:48px}}
+
+* {
+  box-sizing: border-box
+}
+
+html,
+body {
+  min-height: 100%
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+  background: linear-gradient(180deg, #f6fbf7, #eff7f1);
+  color: var(--text);
+  position: relative;
+  overflow-x: hidden
+}
+
+body::before {
+  content: "IGIM  IGIM  IGIM  IGIM";
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(52px, 10vw, 140px);
+  font-weight: 900;
+  letter-spacing: .24em;
+  color: rgba(22, 101, 52, .045);
+  transform: rotate(-24deg);
+  pointer-events: none;
+  z-index: 0;
+  white-space: nowrap
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(92, 172, 61, .09), transparent 30%), radial-gradient(circle at bottom left, rgba(31, 122, 54, .08), transparent 28%);
+  pointer-events: none;
+  z-index: 0
+}
+
+body>* {
+  position: relative;
+}
+
+a {
+  text-decoration: none;
+  color: inherit
+}
+
+.topbar {
+  background: linear-gradient(135deg, #07130b, #12311b 58%, #2b7a32);
+  color: #fff;
+  padding: 16px 24px;
+  position: sticky;
+  top: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+  z-index: 1;
+}
+
+.topbar .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap
+}
+
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px
+}
+
+.brand-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .08);
+  padding: 4px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .16)
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: .01em
+}
+
+.brand p {
+  margin: 5px 0 0;
+  color: rgba(255, 255, 255, .86);
+  font-size: 13px
+}
+
+.nav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center
+}
+
+.nav a {
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 13px;
+  background: rgba(255, 255, 255, .06);
+  backdrop-filter: blur(4px);
+  cursor: pointer
+}
+
+.nav a:hover,
+.nav a.active {
+  background: #fff;
+  color: #0b1c0f
+}
+
+.container {
+  max-width: calc(100% - 20px);
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 18px;
+  margin-bottom: 22px
+}
+
+.panel {
+  background: linear-gradient(180deg, #ffffff, #f8fcf8);
+  border: 1px solid #e2ece3;
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, .06)
+}
+
+.panel.dark {
+  background: linear-gradient(160deg, #0b1d10, #184422);
+  color: #fff;
+  border: none;
+  overflow: hidden;
+  position: relative
+}
+
+.panel.dark::after {
+  content: "IGIM";
+  position: absolute;
+  right: 18px;
+  bottom: -10px;
+  font-size: 96px;
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(255, 255, 255, .06);
+  pointer-events: none
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 20px 0
+}
+
+.kpi {
+  background: #fff;
+  border: 1px solid #e2ece3;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, .04)
+}
+
+.kpi .label {
+  color: #64748b;
+  font-size: 13px;
+  margin-bottom: 8px
+}
+
+.kpi .value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #10361c
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e2ece3;
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, .04)
+}
+
+.card h2,
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 18px
+}
+
+.card h3 {
+  margin: 0 0 10px;
+  font-size: 16px
+}
+
+.muted {
+  color: var(--muted)
+}
+
+.badge {
+  display: inline-block;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #edf8ee;
+  color: #166534;
+  font-size: 12px;
+  font-weight: 700
+}
+
+.table-wrap {
+  overflow: auto;
+  border: 1px solid #e2ece3;
+  border-radius: 14px;
+  background: white
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: #edf8ee;
+  color: #14532d;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #dbe8dc
+}
+
+tbody td {
+  padding: 11px 12px;
+  border-bottom: 1px solid #eef2f0;
+  vertical-align: top;
+  font-size: 14px
+}
+
+tbody tr:hover {
+  background: #f7fcf8
+}
+
+.searchbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 0 18px
+}
+
+.searchbar input,
+.searchbar select,
+.login-card input {
+  padding: 12px 14px;
+  border: 1px solid #cfe0d2;
+  border-radius: 12px;
+  min-width: 220px;
+  background: #fff;
+  width: 100%
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid #dbe8dc;
+  background: #fff;
+  font-weight: 700;
+  color: #102018;
+  cursor: pointer
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #1f7a36, #2f9b43);
+  color: #fff;
+  border-color: #1f7a36
+}
+
+.btn.secondary {
+  background: #fef8e7;
+  border-color: #e6d39d;
+  color: #7c5a06
+}
+
+.list {
+  display: grid;
+  gap: 12px
+}
+
+.list .item {
+  padding: 14px;
+  border: 1px solid #e2ece3;
+  border-radius: 14px;
+  background: #fff
+}
+
+.footer {
+  margin-top: 28px;
+  padding: 22px;
+  color: #61756a;
+  font-size: 13px;
+  text-align: center
+}
+
+.sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px
+}
+
+.sheet-card {
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff, #f8fcf8);
+  border: 1px solid #e2ece3
+}
+
+.sheet-card h3 {
+  margin: 0 0 10px
+}
+
+.inline-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px
+}
+
+.tag {
+  font-size: 12px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #edf8ee;
+  color: #166534;
+  font-weight: 600
+}
+
+.note {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412
+}
+
+.map-frame {
+  width: 100%;
+  height: 78vh;
+  border: 1px solid #d7e6da;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, .05)
+}
+
+.map-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 18px
+}
+
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #07130b, #12311b 60%, #2b7a32)
+}
+
+.login-shell::before {
+  content: "IGIM";
+  position: fixed;
+  inset: auto auto 6% 5%;
+  font-size: min(18vw, 220px);
+  font-weight: 900;
+  letter-spacing: .08em;
+  color: rgba(255, 255, 255, .06);
+  pointer-events: none
+}
+
+.login-card {
+  width: min(460px, 100%);
+  background: rgba(255, 255, 255, .96);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, .45);
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .25)
+}
+
+.login-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px
+}
+
+.login-head img {
+  width: 76px;
+  height: 76px;
+  object-fit: contain
+}
+
+.login-card h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #10361c
+}
+
+.login-card p {
+  margin: 6px 0 0;
+  color: #577266
+}
+
+.login-card label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 14px 0 8px;
+  color: #21432a
+}
+
+.error {
+  display: none;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff1f2;
+  color: #9f1239;
+  border: 1px solid #fecdd3
+}
+
+.error.show {
+  display: block
+}
+
+.login-foot {
+  margin-top: 16px;
+  color: #5f6f66;
+  font-size: 12px;
+  text-align: center
+}
+
+.quick-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px
+}
+
+.input-required::after {
+  content: ' *';
+  color: oklch(70.4% 0.191 22.216);
+}
+
+@media (max-width:1100px) {
+
+  .hero,
+  .kpis,
+  .sheet-grid {
+    grid-template-columns: 1fr 1fr
+  }
+
+  .col-4,
+  .col-5,
+  .col-6,
+  .col-7,
+  .col-8 {
+    grid-column: span 12
+  }
+}
+
+@media (max-width:700px) {
+
+  .hero,
+  .kpis,
+  .sheet-grid {
+    grid-template-columns: 1fr
+  }
+
+  .container {
+    padding: 16px
+  }
+
+  .topbar {
+    padding: 16px
+  }
+
+  .brand h1 {
+    font-size: 20px
+  }
+
+  .brand-logo {
+    width: 48px;
+    height: 48px
+  }
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Hide up/down arrow buttons */
+::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
