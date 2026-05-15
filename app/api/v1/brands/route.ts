@@ -28,10 +28,10 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '12', 10)));
 
     const where = {
-        ...(search && { name: { contains: search, mode: 'insensitive' } }),
+        ...(search && { name: { contains: search, mode: 'insensitive' as const } }),
         ...(status === 'active' && { isActive: true }),
         ...(status === 'inactive' && { isActive: false }),
-        ...(categoryId !== 'all' && { brand_categories: { some: { category_id: categoryId } } }),
+        ...(categoryId !== 'all' && { brandCategories: { some: { categoryId } } }),
     };
 
     try {
@@ -45,8 +45,8 @@ export async function GET(request: NextRequest) {
                             addressLine1: true, addressLine2: true, city: true, state: true, pincode: true,
                         },
                     },
-                    brand_categories: {
-                        include: { categories: { select: { id: true, name: true, slug: true } } },
+                    brandCategories: {
+                        include: { category: { select: { id: true, name: true, slug: true } } },
                     }
                 },
                 orderBy: { [sort]: 'asc' },
@@ -62,8 +62,8 @@ export async function GET(request: NextRequest) {
     
         const formattedData = data?.map((brand: any) => ({
             ...brand,
-            categories: brand.brand_categories.map((bc: any) => bc.categories),
-            brand_categories: undefined
+            categories: brand.brandCategories.map((bc: any) => bc.category),
+            brandCategories: undefined
         }))
     
         return NextResponse.json({
@@ -136,7 +136,12 @@ export async function POST(request: NextRequest) {
     const validatedResult = createBrandSchema.safeParse(rawInput);
 
     if(!validatedResult.success) {
-        return NextResponse.json({ error: 'Validation failed', details: z.treeifyError(validatedResult.error) }, { status: 400 });
+        const fieldErrors: Record<string, string> = {};
+        validatedResult.error.issues.forEach(issue => {
+            const key = issue.path.join('.');
+            if(!fieldErrors[key]) fieldErrors[key] = issue.message;
+        });
+        return NextResponse.json({ error: 'Validation failed', details: fieldErrors }, { status: 400 });
     }
 
     const { name, description, websiteUrl, tags, categoryIds, contact, logoFile, imageFile } = validatedResult.data;
@@ -182,9 +187,9 @@ export async function POST(request: NextRequest) {
             });
 
             // Inserting the brand_categories,
-            await tx.brandCategories.createMany({
+            await tx.brandCategory.createMany({
                 data: categoryIds.map((categoryId) => ({
-                    brand_id: newBrand.id,
+                    brandId: newBrand.id,
                     categoryId
                 }))
             })
@@ -199,8 +204,8 @@ export async function POST(request: NextRequest) {
                             addressLine1: true, addressLine2: true, city: true, state: true, pincode: true,
                         },
                     },
-                    brand_categories: {
-                        include: { categories: { select: { id: true, name: true, slug: true } } },
+                    brandCategories: {
+                        include: { category: { select: { id: true, name: true, slug: true } } },
                     }
                 },
             });
@@ -208,8 +213,8 @@ export async function POST(request: NextRequest) {
 
         const formatted = {
             ...brand,
-            categories: brand.brand_categories.map((bc: any) => bc.category),
-            brand_categories: undefined,
+            categories: brand.brandCategories.map((bc: any) => bc.category),
+            brandCategories: undefined,
         };
 
         return NextResponse.json({ data: formatted }, { status: 201 });

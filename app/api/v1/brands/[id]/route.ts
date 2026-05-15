@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import z from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { getAuthContext } from "@/lib/auth";
@@ -47,14 +46,19 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         tags: JSON.parse(formData.get('tags') as string || '[]'),
         categoryIds: JSON.parse(formData.get('categoryIds') as string || '[]'),
         contact: JSON.parse(formData.get('contact') as string || '{}'),
-        logoFile: formData.get('logo') as File | null,
-        imageFile: formData.get('image') as File | null,
+        logoFile: formData.get('logo') as File || undefined,
+        imageFile: formData.get('image') as File || undefined,
     };
 
     const validatedResult = updateBrandSchema.safeParse(rawInput);
 
     if(!validatedResult.success) {
-        return NextResponse.json({ error: 'Validation failed', details: z.treeifyError(validatedResult.error) }, { status: 400 });
+        const fieldErrors: Record<string, string> = {};
+        validatedResult.error.issues.forEach(issue => {
+            const key = issue.path.join('.');
+            if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+        });
+        return NextResponse.json({ error: 'Validation failed', details: fieldErrors }, { status: 400 });
     }
 
     const { name, description, websiteUrl, tags, categoryIds, contact, logoFile, imageFile } = validatedResult.data;
@@ -119,9 +123,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
             // Updating the brand_categories
             if(categoryIds.length > 0) {
-                await tx.brandCategory.deleteMany({ where: { brand_id: id } });
+                await tx.brandCategory.deleteMany({ where: { brandId: id } });
                 await tx.brandCategory.createMany({
-                    data: categoryIds.map(categoryId => ({ brand_id: id, categoryId })),
+                    data: categoryIds.map(categoryId => ({ brandId: id, categoryId })),
                 });
             }
 
@@ -134,8 +138,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
                             addressLine1: true, addressLine2: true, city: true, state: true, pincode: true,
                         },
                     },
-                    brand_categories: {
-                        include: { categories: { select: { id: true, name: true, slug: true } } },
+                    brandCategories: {
+                        include: { category: { select: { id: true, name: true, slug: true } } },
                     }
                 }
             });
@@ -147,8 +151,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
         const formatted = {
             ...brand,
-            categories: brand.brand_categories.map((bc: any) => bc.category),
-            brand_categories: undefined,
+            categories: brand.brandCategories.map((bc: any) => bc.category),
+            brandCategories: undefined,
         };
 
         // Clean up old storage files after successful DB update
@@ -188,7 +192,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
 
     try {
         await prisma.$transaction(async (tx: any) => {
-            await tx.brand_categories.deleteMany({ where: { brand_id: id } });
+            await tx.brandCategory.deleteMany({ where: { brandId: id } });
             await tx.brand.delete({ where: { id } });
             if(existing.contactId) {
                 await tx.contact.delete({ where: { id: existing.contactId } });

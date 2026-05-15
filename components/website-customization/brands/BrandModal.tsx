@@ -10,7 +10,7 @@ import { Textarea } from '@/components/website-customization/form/TextArea';
 import { Toggle } from '@/components/website-customization/shared/Toggle';
 import { TagInput } from '@/components/website-customization/products/Taginput';
 import ErrorBanner from '@/components/ErrorBanner';
-import type { Brand, BrandContact, Category } from '@/components/website-customization/types/common.types';
+import type { Brand, Category } from '@/components/website-customization/types/common.types';
 
 interface Props {
   open: boolean;
@@ -19,7 +19,31 @@ interface Props {
   editBrand: Brand | null;
   categories: Category[];
   saving: boolean;
-  error: string | null;
+  error: any;
+}
+
+interface FormState {
+  name: string;
+  description: string;
+  websiteUrl: string;
+  tags: string[];
+  categoryIds: string[];
+  isActive: boolean;
+  contact: {
+    name: string;
+    email: string;
+    phoneNo: string;
+    whatsapp: string;
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    state: string;
+    pincode: string;
+  };
+  logoFile: File | null;
+  imageFile: File | null;
+  logoPreview: string | null;
+  imagePreview: string | null;
 }
 
 const Section = ({ icon: Icon, label }: { icon: React.ElementType; label: string }) => (
@@ -32,155 +56,161 @@ const Section = ({ icon: Icon, label }: { icon: React.ElementType; label: string
   </div>
 );
 
-type ContactForm = Omit<BrandContact, 'id'>;
-
-const emptyContact = (): ContactForm => ({
-  name: '', email: '', phoneNo: '', whatsapp: '',
-  addressLine1: '', addressLine2: '', city: '', state: '', pincode: '',
-});
+const initialState: FormState = {
+  name: '', description: '', websiteUrl: '', tags: [], categoryIds: [], isActive: true,
+  contact: { name: '', email: '', phoneNo: '', whatsapp: '', addressLine1: '', addressLine2: '', city: '', state: '', pincode: '' },
+  logoFile: null, imageFile: null, logoPreview: null, imagePreview: null,
+};
 
 export function BrandModal({ open, onClose, onSave, editBrand, categories, saving, error }: Props) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [websiteUrl, setWebsiteUrl] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [isActive, setIsActive] = useState(true);
-  const [contact, setContact] = useState<ContactForm>(emptyContact());
-
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
+  const [form, setForm] = useState<FormState>(initialState);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const logoRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    setFieldErrors({});
     if (editBrand) {
-      setName(editBrand.name);
-      setDescription(editBrand.description ?? '');
-      setWebsiteUrl(editBrand.websiteUrl ?? '');
-      setTags(editBrand.tags ?? []);
-      setSelectedCategories(editBrand.categories.map(c => c.id));
-      setIsActive(editBrand.isActive);
-      setContact({
-        name: editBrand.contact?.name ?? '',
-        email: editBrand.contact?.email ?? '',
-        phoneNo: editBrand.contact?.phoneNo ?? '',
-        whatsapp: editBrand.contact?.whatsapp ?? '',
-        addressLine1: editBrand.contact?.addressLine1 ?? '',
-        addressLine2: editBrand.contact?.addressLine2 ?? '',
-        city: editBrand.contact?.city ?? '',
-        state: editBrand.contact?.state ?? '',
-        pincode: editBrand.contact?.pincode ?? '',
+      setForm({
+        name: editBrand.name,
+        description: editBrand.description ?? '',
+        websiteUrl: editBrand.websiteUrl ?? '',
+        tags: editBrand.tags ?? [],
+        categoryIds: editBrand.categories.map(c => c.id),
+        isActive: editBrand.isActive,
+        contact: {
+          name: editBrand.contact?.name ?? '',
+          email: editBrand.contact?.email ?? '',
+          phoneNo: editBrand.contact?.phoneNo ?? '',
+          whatsapp: editBrand.contact?.whatsapp ?? '',
+          addressLine1: editBrand.contact?.addressLine1 ?? '',
+          addressLine2: editBrand.contact?.addressLine2 ?? '',
+          city: editBrand.contact?.city ?? '',
+          state: editBrand.contact?.state ?? '',
+          pincode: editBrand.contact?.pincode ?? '',
+        },
+        logoFile: null, imageFile: null,
+        logoPreview: editBrand.logoUrl ?? null,
+        imagePreview: editBrand.imageUrl ?? null,
       });
-      setLogoPreview(editBrand.logoUrl ?? null);
-      setImagePreview(editBrand.imageUrl ?? null);
     } else {
-      setName(''); setDescription(''); setWebsiteUrl(''); setTags([]);
-      setSelectedCategories([]); setIsActive(true); setContact(emptyContact());
-      setLogoPreview(null); setImagePreview(null);
+      setForm(initialState);
     }
-    setLogoFile(null); setImageFile(null);
     if (logoRef.current) logoRef.current.value = '';
     if (imageRef.current) imageRef.current.value = '';
   }, [open, editBrand]);
 
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    setFile: (f: File | null) => void,
-    setPreview: (s: string | null) => void,
-  ) => {
+  useEffect(() => {
+    if(!error) return;
+    const details = error?.details;
+    if(details && typeof details === 'object') {
+      setFieldErrors(details as Record<string, string>);
+    }
+  }, [error]);
+
+  const update = (field: keyof FormState, value: any) => setForm(prev => ({ ...prev, [field]: value }));
+  const updateContact = (field: string, value: string) => 
+    setForm(prev => ({ ...prev, contact: { ...prev.contact, [field]: value } }));
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'image') => {
     const file = e.target.files?.[0] ?? null;
-    setFile(file);
-    setPreview(file ? URL.createObjectURL(file) : null);
+    const preview = file ? URL.createObjectURL(file) : null;
+    if (type === 'logo') {
+      setForm(prev => ({ ...prev, logoFile: file, logoPreview: preview }));
+      setFieldErrors(prev => ({ ...prev, logoFile: '' }));
+    } else {
+      setForm(prev => ({ ...prev, imageFile: file, imagePreview: preview }));
+      setFieldErrors(prev => ({ ...prev, imageFile: '' }));
+    }
   };
 
   const toggleCategory = (id: string) =>
-    setSelectedCategories(prev =>
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-    );
-
-  const setC = (key: keyof ContactForm, val: string) =>
-    setContact(prev => ({ ...prev, [key]: val }));
+    update('categoryIds', form.categoryIds.includes(id) ? form.categoryIds.filter(c => c !== id) : [...form.categoryIds, id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
     const fd = new FormData();
-    fd.append('name', name);
-    fd.append('description', description);
-    fd.append('websiteUrl', websiteUrl);
-    fd.append('tags', JSON.stringify(tags));
-    fd.append('categoryIds', JSON.stringify(selectedCategories));
-    fd.append('contact', JSON.stringify({
-      name: contact.name, email: contact.email, phoneNo: contact.phoneNo,
-      whatsapp: contact.whatsapp, addressLine1: contact.addressLine1,
-      addressLine2: contact.addressLine2, city: contact.city,
-      state: contact.state, pincode: contact.pincode,
-    }));
-    fd.append('isActive', String(isActive));
-    if (logoFile) fd.append('logo', logoFile);
-    if (imageFile) fd.append('image', imageFile);
+    fd.append('name', form.name);
+    fd.append('description', form.description);
+    fd.append('websiteUrl', form.websiteUrl);
+    fd.append('tags', JSON.stringify(form.tags));
+    fd.append('categoryIds', JSON.stringify(form.categoryIds));
+    fd.append('contact', JSON.stringify(form.contact));
+    fd.append('isActive', String(form.isActive));
+    if (form.logoFile) fd.append('logo', form.logoFile);
+    if (form.imageFile) fd.append('image', form.imageFile);
     await onSave(fd);
   };
+
+  const hasError = (field: string) => !!fieldErrors[field];
+  const getError = (field: string) => fieldErrors[field];
 
   return (
     <Modal open={open} onClose={onClose} title={editBrand ? 'Edit Brand' : 'Add Brand'}>
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        {error && <ErrorBanner error={error} />}
+        {error && <ErrorBanner error={typeof error === 'string' ? error : error?.message ?? 'An error occurred'} />}
 
         {/* Media */}
         <Section icon={Image} label="Media" />
         <div className="grid grid-cols-2 gap-3">
-          <FormField label={`Logo${editBrand ? ' (optional)' : ' *'}`}>
-            <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-[#c5ddc8] rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden">
-              {logoPreview
-                ? <img src={logoPreview} alt="logo" className="h-full w-full object-contain p-2" />
+          <FormField label={`Logo${editBrand ? ' (optional)' : ' *'}`} error={getError('logoFile')}>
+            <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden ${
+              hasError('logoFile') ? 'border-red-500' : 'border-[#c5ddc8]'
+            }`}>
+              {form.logoPreview
+                ? <img src={form.logoPreview} alt="logo" className="h-full w-full object-contain p-2" />
                 : <span className="text-xs text-[#61756a] font-medium text-center px-2">Logo (PNG/JPG/WEBP/SVG)</span>
               }
               <input ref={logoRef} type="file" name="logo" accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                className="sr-only" onChange={e => handleFileChange(e, setLogoFile, setLogoPreview)} />
+                className="sr-only" onChange={e => handleFileChange(e, 'logo')} />
             </label>
           </FormField>
-          <FormField label="Image (optional)">
-            <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-[#c5ddc8] rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden">
-              {imagePreview
-                ? <img src={imagePreview} alt="banner" className="h-full w-full object-contain p-2" />
+          <FormField label="Image (optional)" error={getError('imageFile')}>
+            <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden ${
+              hasError('imageFile') ? 'border-red-500' : 'border-[#c5ddc8]'
+            }`}>
+              {form.imagePreview
+                ? <img src={form.imagePreview} alt="banner" className="h-full w-full object-contain p-2" />
                 : <span className="text-xs text-[#61756a] font-medium text-center px-2">Banner / hero image</span>
               }
               <input ref={imageRef} type="file" name="image" accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                className="sr-only" onChange={e => handleFileChange(e, setImageFile, setImagePreview)} />
+                className="sr-only" onChange={e => handleFileChange(e, 'image')} />
             </label>
           </FormField>
         </div>
 
         {/* Basic Info */}
         <Section icon={Info} label="Basic Info" />
-        <FormField label="Brand Name *">
-          <Input value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. AgroShield" />
+        <FormField label="Brand Name *" error={getError('name')}>
+          <Input value={form.name} onChange={e => { update('name', e.target.value); setFieldErrors(p => ({ ...p, name: '' })); }} 
+            required placeholder="e.g. AgroShield" className={hasError('name') ? 'border-red-500' : ''} />
         </FormField>
-        <FormField label="Website URL">
-          <Input value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} type="url" placeholder="https://yourbrand.com" />
+        <FormField label="Website URL" error={getError('websiteUrl')}>
+          <Input value={form.websiteUrl} onChange={e => { update('websiteUrl', e.target.value); setFieldErrors(p => ({ ...p, websiteUrl: '' })); }} 
+            type="url" placeholder="https://yourbrand.com" className={hasError('websiteUrl') ? 'border-red-500' : ''} />
         </FormField>
-        <FormField label="Description">
-          <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Short description about the brand…" />
+        <FormField label="Description" error={getError('description')}>
+          <Textarea value={form.description} onChange={e => { update('description', e.target.value); setFieldErrors(p => ({ ...p, description: '' })); }} 
+            placeholder="Short description about the brand…" className={hasError('description') ? 'border-red-500' : ''} />
         </FormField>
 
         {/* Tags */}
         <Section icon={Tag} label="Tags" />
-        <FormField label="Tags">
-          <TagInput value={tags} onChange={setTags} placeholder="Type tag & press Enter…" />
+        <FormField label="Tags" error={getError('tags')}>
+          <TagInput value={form.tags} onChange={(v) => { update('tags', v); setFieldErrors(p => ({ ...p, tags: '' })); }} 
+            placeholder="Type tag & press Enter…" />
         </FormField>
 
         {/* Categories */}
         <Section icon={Info} label="Categories *" />
+        {hasError('categoryIds') && <p className="text-xs text-red-600">{getError('categoryIds')}</p>}
         <div className="flex flex-wrap gap-2">
           {categories.map(c => {
-            const checked = selectedCategories.includes(c.id);
+            const checked = form.categoryIds.includes(c.id);
             return (
-              <button key={c.id} type="button" onClick={() => toggleCategory(c.id)}
+              <button key={c.id} type="button" onClick={() => { toggleCategory(c.id); setFieldErrors(p => ({ ...p, categoryIds: '' })); }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                   checked
                     ? 'bg-[#1f7a36] text-white border-[#1f7a36]'
@@ -194,51 +224,57 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
 
         {/* Contact */}
         <Section icon={Users} label="Contact" />
-        <FormField label="Contact Name *">
-          <Input value={contact.name} onChange={e => setC('name', e.target.value)} required placeholder="Rajesh Kumar" />
+        <FormField label="Contact Name *" error={getError('contact.name')}>
+          <Input value={form.contact.name} onChange={e => { updateContact('name', e.target.value); setFieldErrors(p => ({ ...p, 'contact.name': '' })); }} 
+            required placeholder="Rajesh Kumar" className={hasError('contact.name') ? 'border-red-500' : ''} />
         </FormField>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Phone *">
+          <FormField label="Phone *" error={getError('contact.phoneNo')}>
             <div className="relative">
               <Phone size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#61756a]" />
-              <Input value={contact.phoneNo} onChange={e => setC('phoneNo', e.target.value)}
-                required placeholder="9876543210" className="pl-9" maxLength={10} />
+              <Input value={form.contact.phoneNo} onChange={e => { updateContact('phoneNo', e.target.value); setFieldErrors(p => ({ ...p, 'contact.phoneNo': '' })); }}
+                required placeholder="9876543210" className={`pl-9 ${hasError('contact.phoneNo') ? 'border-red-500' : ''}`} maxLength={10} />
             </div>
           </FormField>
-          <FormField label="WhatsApp *">
-            <Input value={contact.whatsapp} onChange={e => setC('whatsapp', e.target.value)}
-              required placeholder="9876543210" maxLength={10} />
+          <FormField label="WhatsApp *" error={getError('contact.whatsapp')}>
+            <Input value={form.contact.whatsapp} onChange={e => { updateContact('whatsapp', e.target.value); setFieldErrors(p => ({ ...p, 'contact.whatsapp': '' })); }}
+              required placeholder="9876543210" className={hasError('contact.whatsapp') ? 'border-red-500' : ''} maxLength={10} />
           </FormField>
         </div>
-        <FormField label="Email">
+        <FormField label="Email" error={getError('contact.email')}>
           <div className="relative">
             <Mail size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#61756a]" />
-            <Input value={contact.email ?? ''} onChange={e => setC('email', e.target.value)}
-              type="email" placeholder="contact@brand.com" className="pl-9" />
+            <Input value={form.contact.email} onChange={e => { updateContact('email', e.target.value); setFieldErrors(p => ({ ...p, 'contact.email': '' })); }}
+              type="email" placeholder="contact@brand.com" className={`pl-9 ${hasError('contact.email') ? 'border-red-500' : ''}`} />
           </div>
         </FormField>
-        <FormField label="Address Line 1">
-          <Input value={contact.addressLine1 ?? ''} onChange={e => setC('addressLine1', e.target.value)} placeholder="Street / locality" />
+        <FormField label="Address Line 1" error={getError('contact.addressLine1')}>
+          <Input value={form.contact.addressLine1} onChange={e => { updateContact('addressLine1', e.target.value); setFieldErrors(p => ({ ...p, 'contact.addressLine1': '' })); }} 
+            placeholder="Street / locality" className={hasError('contact.addressLine1') ? 'border-red-500' : ''} />
         </FormField>
-        <FormField label="Address Line 2">
-          <Input value={contact.addressLine2 ?? ''} onChange={e => setC('addressLine2', e.target.value)} placeholder="Area / landmark" />
+        <FormField label="Address Line 2" error={getError('contact.addressLine2')}>
+          <Input value={form.contact.addressLine2} onChange={e => { updateContact('addressLine2', e.target.value); setFieldErrors(p => ({ ...p, 'contact.addressLine2': '' })); }} 
+            placeholder="Area / landmark" className={hasError('contact.addressLine2') ? 'border-red-500' : ''} />
         </FormField>
         <div className="grid grid-cols-3 gap-3">
-          <FormField label="City">
-            <Input value={contact.city ?? ''} onChange={e => setC('city', e.target.value)} placeholder="City" />
+          <FormField label="City" error={getError('contact.city')}>
+            <Input value={form.contact.city} onChange={e => { updateContact('city', e.target.value); setFieldErrors(p => ({ ...p, 'contact.city': '' })); }} 
+              placeholder="City" className={hasError('contact.city') ? 'border-red-500' : ''} />
           </FormField>
-          <FormField label="State">
-            <Input value={contact.state ?? ''} onChange={e => setC('state', e.target.value)} placeholder="State" />
+          <FormField label="State" error={getError('contact.state')}>
+            <Input value={form.contact.state} onChange={e => { updateContact('state', e.target.value); setFieldErrors(p => ({ ...p, 'contact.state': '' })); }} 
+              placeholder="State" className={hasError('contact.state') ? 'border-red-500' : ''} />
           </FormField>
-          <FormField label="Pincode">
-            <Input value={contact.pincode ?? ''} onChange={e => setC('pincode', e.target.value)} placeholder="600001" maxLength={6} />
+          <FormField label="Pincode" error={getError('contact.pincode')}>
+            <Input value={form.contact.pincode} onChange={e => { updateContact('pincode', e.target.value); setFieldErrors(p => ({ ...p, 'contact.pincode': '' })); }} 
+              placeholder="600001" className={hasError('contact.pincode') ? 'border-red-500' : ''} maxLength={6} />
           </FormField>
         </div>
 
         {/* Settings */}
         <Section icon={Settings} label="Settings" />
         <div className="rounded-xl border border-[#e2ece3] bg-[#fafdfb] px-4 py-3.5">
-          <Toggle checked={isActive} onChange={setIsActive}
+          <Toggle checked={form.isActive} onChange={(v) => update('isActive', v)}
             label="Active on site" description="Show this brand on the website" />
         </div>
 
