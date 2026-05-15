@@ -101,14 +101,6 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
     if (imageRef.current) imageRef.current.value = '';
   }, [open, editBrand]);
 
-  useEffect(() => {
-    if(!error) return;
-    const details = error?.details;
-    if(details && typeof details === 'object') {
-      setFieldErrors(details as Record<string, string>);
-    }
-  }, [error]);
-
   const update = (field: keyof FormState, value: any) => setForm(prev => ({ ...prev, [field]: value }));
   const updateContact = (field: string, value: string) => 
     setForm(prev => ({ ...prev, contact: { ...prev.contact, [field]: value } }));
@@ -141,7 +133,15 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
     fd.append('isActive', String(form.isActive));
     if (form.logoFile) fd.append('logo', form.logoFile);
     if (form.imageFile) fd.append('image', form.imageFile);
-    await onSave(fd);
+    
+    try {
+      await onSave(fd);
+    } 
+    catch(e: any) {
+      if(e?.details && typeof e.details === 'object') {
+        setFieldErrors(e.details as Record<string, string>);
+      }
+    }
   };
 
   const hasError = (field: string) => !!fieldErrors[field];
