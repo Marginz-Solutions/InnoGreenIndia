@@ -51,7 +51,7 @@ const Section = ({ icon: Icon, label }: { icon: React.ElementType; label: string
     <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-[#edf8ee] text-[#1f7a36]">
       <Icon size={13} />
     </div>
-    <span className="text-xs font-bold text-[#21432a] uppercase tracking-widest">{label}</span>
+    <span className={`text-xs font-bold text-[#21432a] uppercase tracking-widest ${label === 'Categories' ? 'input-required' : ''} `}>{label}</span>
     <div className="flex-1 h-px bg-[#e2ece3]" />
   </div>
 );
@@ -159,7 +159,7 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
         {/* Media */}
         <Section icon={Image} label="Media" />
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Logo *" error={getError('logoFile')}>
+          <FormField label="Logo" className="input-required" error={getError('logoFile')}>
             <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden ${
               hasError('logoFile') ? 'border-red-500' : 'border-[#c5ddc8]'
             }`}>
@@ -202,7 +202,7 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
 
         {/* Basic Info */}
         <Section icon={Info} label="Basic Info" />
-        <FormField label="Brand Name *" error={getError('name')}>
+        <FormField label="Brand Name" className="input-required" error={getError('name')}>
           <Input value={form.name} onChange={e => { update('name', e.target.value); setFieldErrors(p => ({ ...p, name: '' })); }} 
             required placeholder="e.g. AgroShield" className={hasError('name') ? 'border-red-500' : ''} />
         </FormField>
@@ -223,7 +223,7 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
         </FormField>
 
         {/* Categories */}
-        <Section icon={Info} label="Categories *" />
+        <Section icon={Info} label="Categories" />
         {hasError('categoryIds') && <p className="text-xs text-red-600">{getError('categoryIds')}</p>}
         <div className="flex flex-wrap gap-2">
           {categories.map(c => {
@@ -243,19 +243,19 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
 
         {/* Contact */}
         <Section icon={Users} label="Contact" />
-        <FormField label="Contact Name *" error={getError('contact.name')}>
+        <FormField label="Contact Name" className="input-required" error={getError('contact.name')}>
           <Input value={form.contact.name} onChange={e => { updateContact('name', e.target.value); setFieldErrors(p => ({ ...p, 'contact.name': '' })); }} 
             required placeholder="Rajesh Kumar" className={hasError('contact.name') ? 'border-red-500' : ''} />
         </FormField>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Phone *" error={getError('contact.phoneNo')}>
+          <FormField label="Phone" className="input-required" error={getError('contact.phoneNo')}>
             <div className="relative">
               <Phone size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#61756a]" />
               <Input value={form.contact.phoneNo} onChange={e => { updateContact('phoneNo', e.target.value); setFieldErrors(p => ({ ...p, 'contact.phoneNo': '' })); }}
                 required placeholder="9876543210" className={`pl-9 ${hasError('contact.phoneNo') ? 'border-red-500' : ''}`} maxLength={10} />
             </div>
           </FormField>
-          <FormField label="WhatsApp *" error={getError('contact.whatsapp')}>
+          <FormField label="WhatsApp" className="input-required" error={getError('contact.whatsapp')}>
             <Input value={form.contact.whatsapp} onChange={e => { updateContact('whatsapp', e.target.value); setFieldErrors(p => ({ ...p, 'contact.whatsapp': '' })); }}
               required placeholder="9876543210" className={hasError('contact.whatsapp') ? 'border-red-500' : ''} maxLength={10} />
           </FormField>
