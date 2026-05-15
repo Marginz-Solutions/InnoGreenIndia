@@ -9,14 +9,20 @@
     "lint": "next lint",
     "prisma:generate": "npx prisma generate",
     "prisma:push": "npx prisma db push",
-    "prisma:pull": "npx prisma db pull"
+    "prisma:pull": "npx prisma db pull",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.19.10",
     "@prisma/client": "6.8.2",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/leaflet": "^1.9.14",
+    "@types/node": "^25.7.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.5.0",
     "axios": "^1.16.1",
     "leaflet": "^1.9.4",
@@ -29,13 +35,11 @@
     "react-leaflet": "^5.0.0",
     "sonner": "^2.0.7",
     "tailwindcss": "^4.3.0",
-    "zod": "^4.4.3",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
     "typescript": "^6.0.3",
-    "@types/node": "^25.7.0"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/pg": "^8.20.0"
+    "@types/pg": "^8.20.0",
+    "wrangler": "^4.92.0"
   }
 }
