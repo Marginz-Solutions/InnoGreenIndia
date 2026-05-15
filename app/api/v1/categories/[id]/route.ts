@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+
+import { getAuthContext } from '@/lib/auth';
+import { generateSlug } from '@/lib/utils';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
+/**
+ * @method PATCH /api/v1/admin/categories/[id]
+ * @description Update an existing category with the given ID
+ * @requires { name: string } - Name of the category to be updated
+ * @param {string} id - ID of the category to be updated
+ */
 export async function PATCH(request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getAuthContext();
 
   if(!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -32,7 +37,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: 'Category name already exists in the db' }, { status: 400 });
   }
 
-  const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+  const slug = generateSlug(name);
 
   const { data, error } = await supabase
     .from('categories')
@@ -48,12 +53,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   return NextResponse.json({ data });
 }
 
+/**
+ * @method DELETE /api/v1/admin/categories/[id]
+ * @description Delete an existing category with the given id
+ * @param {string} id - id of the category to be deleted
+ */
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getAuthContext();
 
   if(!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
