@@ -1,5 +1,6 @@
 export type SidebarSection =
 | 'pulse'
+| 'dashboard'
 | 'products'
 | 'brands'
 | 'dealer'
