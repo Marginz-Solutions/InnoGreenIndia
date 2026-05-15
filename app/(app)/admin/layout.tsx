@@ -11,6 +11,7 @@ import { SidebarSection } from '@/components/website-customization/types/common.
 
 const SECTION_PATHS: Record<SidebarSection, string> = {
   pulse: '/admin/pulse',
+  dashboard: '/admin/dashboard',
   products: '/admin/products',
   brands: '/admin/brands',
   dealer: '/admin/dealers',
@@ -20,6 +21,7 @@ const SECTION_PATHS: Record<SidebarSection, string> = {
 
 const getSectionFromPathname = (pathname: string): SidebarSection => {
   if(pathname.startsWith('/admin/brands')) return 'brands';
+  if(pathname.startsWith('/admin/dashboard')) return 'dashboard';
   if(pathname.startsWith('/admin/contacts')) return 'contacts';
   if(pathname.startsWith('/admin/dealers')) return 'dealer';
   if(pathname.startsWith('/admin/products')) return 'products';

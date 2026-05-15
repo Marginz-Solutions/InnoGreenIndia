@@ -138,7 +138,7 @@ function DonutRing({ slices }: { slices: { color: string; pct: number }[] }) {
 
 // ── Dashboard view ─────────────────────────────────────────────────────────────
 
-function Dashboard({ enquiries, dealers }: { enquiries: Enquiry[]; dealers: Dealer[] }) {
+export function Dashboard({ enquiries, dealers }: { enquiries: Enquiry[]; dealers: Dealer[] }) {
     const newCount = enquiries.filter((e) => e.status === "new").length;
     const closedCount = enquiries.filter((e) => e.status === "closed").length;
     const reviewedCount = dealers.length;
@@ -320,7 +320,7 @@ export default function DealersHubClient({
     enquiries: Enquiry[];
     dealers: Dealer[];
 }) {
-    const [tab, setTab] = useState<Tab>("dashboard");
+    const [tab, setTab] = useState<Tab>("enquiries");
     const [fetchedEnquiries, setFetchedEnquiries] = useState<Enquiry[]>(enquiries);
     const [fetchedDealers, setFetchedDealers] = useState<Dealer[]>(dealers);
     const [modalOpen, setModalOpen] = useState(false);
@@ -375,7 +375,7 @@ export default function DealersHubClient({
     };
 
     const tabs: { key: Tab; label: string; badge?: string | number }[] = [
-        { key: "dashboard", label: "Dashboard" },
+        // { key: "dashboard", label: "Dashboard" },
         {
             key: "enquiries",
             label: "New Enquiries",
@@ -430,10 +430,10 @@ export default function DealersHubClient({
                 </button>
             </div>
 
-            {/* Tab content */}
+            {/* Tab content
             {tab === "dashboard" && (
                 <Dashboard enquiries={fetchedEnquiries} dealers={fetchedDealers} />
-            )}
+            )} */}
             {tab === "enquiries" && (
                 <EnquiriesClient
                     enquiries={fetchedEnquiries}

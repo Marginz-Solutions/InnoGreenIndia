@@ -4,7 +4,8 @@ Package,
 Briefcase,
 Users,
 Tag,
-Contact
+Contact,
+LayoutDashboard
 } from 'lucide-react';
 
 import { SidebarSection } from '../types/common.types';
@@ -14,6 +15,11 @@ export const NAV_ITEMS = [
         id: 'pulse' as SidebarSection,
         label: "Today's Pulse List",
         icon: BarChart3,
+    },
+    {
+        id: 'dashboard' as SidebarSection,
+        label: "Dashboard",
+        icon: LayoutDashboard,
     },
     {
         id: 'products' as SidebarSection,
