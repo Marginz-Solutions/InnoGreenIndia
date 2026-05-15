@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ALLOWED_FILES, MAX_FILE_SIZE } from "@/lib/utils";
 
-const fileSchema = z.instanceof(File)
+const fileSchema = z.instanceof(File, { message: 'Please select a logo' })
     .refine(f => ALLOWED_FILES.includes(f.type), 'Must be jpg, jpeg, png, webp or svg')
     .refine(f => f.size <= MAX_FILE_SIZE, 'Must be under 2MB');
 
