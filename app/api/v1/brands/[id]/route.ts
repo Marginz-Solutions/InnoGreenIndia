@@ -196,6 +196,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
         await prisma.$transaction(async (tx: any) => {
             await tx.brandCategory.deleteMany({ where: { brandId: id } });
             await tx.brand.delete({ where: { id } });
+            await tx.product.deleteMany({ where: { brandId: id }});
             if(existing.contactId) {
                 await tx.contact.delete({ where: { id: existing.contactId } });
             }
