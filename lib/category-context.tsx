@@ -38,7 +38,7 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
   }, [fetchCategories]);
 
   return (
-    <CategoryContext.Provider 
+    <CategoryContext 
       value={{ 
         categories, 
         isLoading, 
@@ -47,7 +47,7 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </CategoryContext.Provider>
+    </CategoryContext>
   );
 }
 

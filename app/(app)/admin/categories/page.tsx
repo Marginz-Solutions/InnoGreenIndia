@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Check, Plus, Tags, Trash2 } from 'lucide-react';
 
 import type { Category } from '@/components/website-customization/types/common.types';
@@ -9,14 +9,14 @@ import { EmptyState } from '@/components/website-customization/shared/EmptyState
 import { Modal } from '@/components/website-customization/shared/Modal';
 import { FormField } from '@/components/website-customization/form/FormField';
 import { Input } from '@/components/website-customization/form/Input';
-
-import { api } from '@/lib/axiosInstance';
 import ErrorBanner from '@/components/ErrorBanner';
 
+import { api } from '@/lib/axiosInstance';
+import { useCategory } from '@/lib/category-context';
+
 export default function CategoriesPage() {
-    const [items, setItems] = useState<Category[]>([]);
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+    const { categories, isLoading: loading, error: contextError, refreshCategories } = useCategory();
+    const [mutationError, setMutationError] = useState<string | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [newName, setNewName] = useState('');
     const [savingNew, setSavingNew] = useState(false);
@@ -25,24 +25,7 @@ export default function CategoriesPage() {
     const [savingId, setSavingId] = useState<string | null>(null);
     const editInputRef = useRef<HTMLInputElement>(null);
 
-    const fetchCategories = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const response = await api.get('/categories');
-            setItems(response.data ?? []);
-            setLoading(false);
-        }
-        catch(error) {
-            setError(error instanceof Error ? error.message : 'Could not create category');
-            setItems([]);
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchCategories();
-    }, [fetchCategories]);
+    const error = mutationError || contextError;
 
     useEffect(() => {
         if(editingId && editInputRef.current) {
@@ -73,22 +56,18 @@ export default function CategoriesPage() {
         const name = newName.trim();
         if(!name || savingNew) return;
         setSavingNew(true);
-        setError(null);
+        setMutationError(null);
         try {
-            const response = await api.post('/categories', { name });
-
-            if(response.data) {
-                setItems((prev) => [...prev, response.data].sort((a, b) => a.name.localeCompare(b.name)));
-            }
+            await api.post('/categories', { name });
+            await refreshCategories();
             setModalOpen(false);
             setNewName('');
         } 
         catch(error) {
-            setError(error instanceof Error ? error.message : 'Could not create category');
+            setMutationError(error instanceof Error ? error.message : 'Could not create category');
         } 
         finally {
             setSavingNew(false);
-            setModalOpen(false);
         }
     };
 
@@ -101,19 +80,15 @@ export default function CategoriesPage() {
         const name = editDraft.trim();
         if(!name || savingId) return;
         setSavingId(id);
-        setError(null);
+        setMutationError(null);
         try {
-            const response = await api.patch(`/categories/${id}`, { name });
-            if (response.data) {
-                setItems((prev) =>
-                    prev.map((c) => (c.id === id ? response.data : c)).sort((a, b) => a.name.localeCompare(b.name))
-                );
-            }
+            await api.patch(`/categories/${id}`, { name });
+            await refreshCategories();
             setEditingId(null);
             setEditDraft('');
         } 
         catch(error) {
-            setError(error instanceof Error ? error.message : 'Could not update category');
+            setMutationError(error instanceof Error ? error.message : 'Could not update category');
         } 
         finally {
             setSavingId(null);
@@ -122,18 +97,17 @@ export default function CategoriesPage() {
 
     const removeCategory = async (id: string) => {
         if(!confirm('Delete this category?')) return;
-        setError(null);
+        setMutationError(null);
         try {
             await api.delete(`/categories/${id}`);
-
-            setItems((prev) => prev.filter((c) => c.id !== id));
+            await refreshCategories();
             if(editingId === id) {
                 setEditingId(null);
                 setEditDraft('');
             }
         } 
         catch(error) {
-            setError(error instanceof Error ? error.message : 'Could not delete');
+            setMutationError(error instanceof Error ? error.message : 'Could not delete');
         }
     };
 
@@ -154,7 +128,7 @@ export default function CategoriesPage() {
 
             {loading ? (
                 <p className="text-sm text-[#61756a]">Loading categories…</p>
-            ) : items.length === 0 ? (
+            ) : categories.length === 0 ? (
                 <EmptyState
                     icon={Tags}
                     title="No categories yet"
@@ -163,7 +137,7 @@ export default function CategoriesPage() {
                 />
             ) : (
                 <div className="flex flex-wrap gap-3 md:gap-5">
-                    {items.map((cat: any) => {
+                    {categories.map((cat: any) => {
                         const isEditing = editingId === cat.id;
                         return (
                             <div
