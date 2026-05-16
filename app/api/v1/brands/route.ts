@@ -19,6 +19,12 @@ import { rollbackUploads, uploadImage } from "./_upload";
  * @param {number} [query.limit] - Items per page (default: 10)
  */
 export async function GET(request: NextRequest) {
+    const { user } = await getAuthContext();
+
+    if(!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status') || 'all';
@@ -39,14 +45,14 @@ export async function GET(request: NextRequest) {
             prisma.brand.findMany({
                 where,
                 include: {
-                    contact: {
+                    contacts: {
                         select: {
                             id: true, name: true, email: true, phoneNo: true, whatsapp: true,
                             addressLine1: true, addressLine2: true, city: true, state: true, pincode: true,
                         },
                     },
                     brandCategories: {
-                        include: { category: { select: { id: true, name: true, slug: true } } },
+                        include: { categories: { select: { id: true, name: true, slug: true } } },
                     }
                 },
                 orderBy: { [sort]: 'asc' },
@@ -62,7 +68,7 @@ export async function GET(request: NextRequest) {
     
         const formattedData = data?.map((brand: any) => ({
             ...brand,
-            categories: brand.brandCategories.map((bc: any) => bc.category),
+            categories: brand.brandCategories.map((bc: any) => bc.categories),
             brandCategories: undefined
         }))
     
@@ -206,7 +212,7 @@ export async function POST(request: NextRequest) {
                         },
                     },
                     brandCategories: {
-                        include: { category: { select: { id: true, name: true, slug: true } } },
+                        include: { categories: { select: { id: true, name: true, slug: true } } },
                     }
                 },
             });
@@ -218,7 +224,7 @@ export async function POST(request: NextRequest) {
 
         const formatted = {
             ...brand,
-            categories: brand.brandCategories.map((bc: any) => bc.category),
+            categories: brand.brandCategories.map((bc: any) => bc.categories),
             brandCategories: undefined,
         };
 
