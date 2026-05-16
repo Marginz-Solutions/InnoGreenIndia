@@ -1,9 +1,10 @@
 export type SidebarSection =
-| 'pulse'
 | 'dashboard'
+| 'pulse'
 | 'products'
 | 'brands'
 | 'dealer'
+| 'smartEnquiries'
 | 'contacts'
 | 'categories';
 

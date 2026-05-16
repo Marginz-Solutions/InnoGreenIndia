@@ -95,11 +95,11 @@ export default function EnquiriesClient({
             const q = filters.query.toLowerCase();
             const matchQuery =
                 !q ||
-                e.firm_name?.toLowerCase().includes(q) ||
+                e.firmName?.toLowerCase().includes(q) ||
                 e.district?.toLowerCase().includes(q) ||
                 e.categories.name?.toLowerCase().includes(q) ||
-                e.gst_number?.toLowerCase().includes(q) ||
-                e.mobile_no?.toLowerCase().includes(q);
+                e.gstNumber?.toLowerCase().includes(q) ||
+                e.mobileNo?.toLowerCase().includes(q);
 
             const matchCategory =
                 filters.category === "all" || e.categories.name === filters.category;
@@ -278,8 +278,8 @@ export default function EnquiriesClient({
                         >
                             <div className="flex items-start justify-between gap-2 mb-3">
                                 <div>
-                                    <p className="text-sm font-semibold text-gray-900">{enquiry.firm_name}</p>
-                                    <p className="text-xs font-mono text-gray-400 mt-0.5">GST No.: {enquiry.gst_number}</p>
+                                    <p className="text-sm font-semibold text-gray-900">{enquiry.firmName}</p>
+                                    <p className="text-xs font-mono text-gray-400 mt-0.5">GST No.: {enquiry.gstNumber}</p>
                                 </div>
                                 <StatusBadge status={enquiry.status} />
                             </div>
@@ -291,15 +291,15 @@ export default function EnquiriesClient({
                                 </div>
                                 <div>
                                     <p className="text-gray-400 uppercase tracking-wide text-[10px] font-medium mb-0.5">Mobile No</p>
-                                    <a href={`tel:${enquiry.mobile_no}`} onClick={(e) => e.stopPropagation()}
+                                    <a href={`tel:${enquiry.mobileNo}`} onClick={(e) => e.stopPropagation()}
                                         className="text-[#2d5a27] font-medium hover:underline">
-                                        {enquiry.mobile_no}
+                                        {enquiry.mobileNo}
                                     </a>
                                 </div>
                                 <div>
                                     <p className="text-gray-400 uppercase tracking-wide text-[10px] font-medium mb-0.5">Monthly Volume</p>
                                     <p className="text-gray-700">
-                                        {enquiry.monthly_volume ?? <span className="italic text-gray-300">Not provided</span>}
+                                        {enquiry.monthlyVolume ?? <span className="italic text-gray-300">Not provided</span>}
                                     </p>
                                 </div>
                             </div>
@@ -308,7 +308,7 @@ export default function EnquiriesClient({
                                 <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 border border-gray-200">
                                     🌿 {enquiry.categories.name}
                                 </span>
-                                <p className="text-[11px] text-gray-400">{enquiry.submitted_at}</p>
+                                <p className="text-[11px] text-gray-400">{enquiry.submittedAt}</p>
                             </div>
                         </div>
                     ))}
@@ -335,14 +335,14 @@ export default function EnquiriesClient({
                                             }`}>
                                         <td className="px-4 py-3">
                                             <div>
-                                                <p className="font-medium text-gray-900 whitespace-nowrap">{enquiry.firm_name}</p>
-                                                <p className="text-[11px] font-mono text-gray-400 mt-0.5">{enquiry.gst_number}</p>
+                                                <p className="font-medium text-gray-900 whitespace-nowrap">{enquiry.firmName}</p>
+                                                <p className="text-[11px] font-mono text-gray-400 mt-0.5">{enquiry.gstNumber}</p>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{enquiry.gst_number}</td>
+                                        <td className="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{enquiry.gstNumber}</td>
                                         <td className="px-4 py-3 whitespace-nowrap">
-                                            <a href={`tel:${enquiry.mobile_no}`} onClick={(e) => e.stopPropagation()}
-                                                className="text-[#2d5a27] text-xs font-medium hover:underline">{enquiry.mobile_no}</a>
+                                            <a href={`tel:${enquiry.mobileNo}`} onClick={(e) => e.stopPropagation()}
+                                                className="text-[#2d5a27] text-xs font-medium hover:underline">{enquiry.mobileNo}</a>
                                         </td>
                                         <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{enquiry.district}</td>
                                         <td className="px-4 py-3">
@@ -352,9 +352,9 @@ export default function EnquiriesClient({
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                                            {enquiry.monthly_volume ?? <span className="italic text-gray-300">—</span>}
+                                            {enquiry.monthlyVolume ?? <span className="italic text-gray-300">—</span>}
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{enquiry.submitted_at}</td>
+                                        <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{enquiry.submittedAt}</td>
                                         <td className="px-4 py-3"><StatusBadge status={enquiry.status} /></td>
                                     </tr>
                                 ))}
@@ -379,7 +379,7 @@ export default function EnquiriesClient({
                             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200 md:hidden" />
 
                             <div className="flex items-center justify-between mb-5">
-                                <h2 className="text-base font-semibold text-gray-900">{selected.firm_name}</h2>
+                                <h2 className="text-base font-semibold text-gray-900">{selected.firmName}</h2>
                                 <button onClick={() => setSelected(null)}
                                     className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"
                                     aria-label="Close">✕</button>
@@ -387,15 +387,15 @@ export default function EnquiriesClient({
 
                             <div className="flex flex-col gap-4">
                                 {[
-                                    { label: "Firm Name", value: selected.firm_name },
-                                    { label: "GST Number", value: selected.gst_number, mono: true },
-                                    { label: "Mobile No", value: selected.mobile_no, mono: true, phone: true },
+                                    { label: "Firm Name", value: selected.firmName },
+                                    { label: "GST Number", value: selected.gstNumber, mono: true },
+                                    { label: "Mobile No", value: selected.mobileNo, mono: true, phone: true },
                                     { label: "District", value: selected.district },
                                     { label: "Category Interest", value: selected.categories.name },
                                     {
                                         label: "Monthly Volume (optional)",
-                                        value: selected.monthly_volume ?? "Not provided",
-                                        muted: !selected.monthly_volume,
+                                        value: selected.monthlyVolume ?? "Not provided",
+                                        muted: !selected.monthlyVolume,
                                     },
                                 ].map(({ label, value, mono, muted, phone }) => (
                                     <div key={label}>
@@ -415,7 +415,7 @@ export default function EnquiriesClient({
                                 ))}
                             </div>
 
-                            <p className="text-[11px] text-gray-400 mt-4 mb-2">Submitted: {selected.submitted_at}</p>
+                            <p className="text-[11px] text-gray-400 mt-4 mb-2">Submitted: {selected.submittedAt}</p>
                         </div>
 
                         {/* Pinned actions */}

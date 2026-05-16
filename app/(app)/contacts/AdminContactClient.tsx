@@ -76,7 +76,7 @@ function Recenter({ lat, lng }: { lat: number; lng: number }) {
 /* ─── Types ─────────────────────────────────────────── */
 interface ContactData {
   phone: string;
-  alt_phone: string;
+  altPhone: string;
   email: string;
   website: string;
   address: string;
@@ -120,8 +120,8 @@ function SectionHeader({
   return (
     <div
       className={`flex items-center gap-2 mb-5 pb-3.5 border-b text-[11px] font-mono uppercase tracking-[0.09em] ${accent
-          ? "text-[#5DCAA5] border-[rgba(93,202,165,0.2)]"
-          : "text-gray-400 border-black/[0.08]"
+        ? "text-[#5DCAA5] border-[rgba(93,202,165,0.2)]"
+        : "text-gray-400 border-black/[0.08]"
         }`}
     >
       <Icon size={14} />
@@ -165,13 +165,13 @@ function Field({
       {isEditing ? (
         <input
           className={`w-full rounded-lg px-3 py-2.5 text-sm outline-none transition-colors border ${dark
-              ? `bg-white/[0.06] font-mono ${error
-                ? "border-red-500/60 text-red-400 focus:border-red-400"
-                : "border-[rgba(93,202,165,0.3)] text-[#9FE1CB] focus:border-[#5DCAA5]"
-              }`
-              : error
-                ? "bg-red-50 border-red-400 text-gray-900 focus:border-red-500"
-                : "bg-gray-50 border-[rgba(29,158,117,0.35)] text-gray-900 focus:border-[#1D9E75]"
+            ? `bg-white/[0.06] font-mono ${error
+              ? "border-red-500/60 text-red-400 focus:border-red-400"
+              : "border-[rgba(93,202,165,0.3)] text-[#9FE1CB] focus:border-[#5DCAA5]"
+            }`
+            : error
+              ? "bg-red-50 border-red-400 text-gray-900 focus:border-red-500"
+              : "bg-gray-50 border-[rgba(29,158,117,0.35)] text-gray-900 focus:border-[#1D9E75]"
             }`}
           type={type}
           value={value}
@@ -372,7 +372,7 @@ export default function AdminContactClient({ contactData }: { contactData: Conta
               <SectionHeader icon={Phone} label="Communications" />
               <div className="grid grid-cols-2 gap-[18px]">
                 <Field label="Primary Contact" name="phone" value={d?.phone} isEditing={isEditing} onChange={handleChange} mono error={errors.phone} />
-                <Field label="Alternate Contact" name="alt_phone" value={d?.alt_phone} isEditing={isEditing} onChange={handleChange} mono />
+                <Field label="Alternate Contact" name="altPhone" value={d?.altPhone} isEditing={isEditing} onChange={handleChange} mono />
                 <Field label="Email Address" name="email" value={d?.email} isEditing={isEditing} onChange={handleChange} type="email" wide error={errors.email} />
                 <Field label="Web Portal" name="website" value={d?.website} isEditing={isEditing} onChange={handleChange} type="url" wide />
               </div>

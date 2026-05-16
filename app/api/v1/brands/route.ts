@@ -40,6 +40,8 @@ export async function GET(request: NextRequest) {
         ...(categoryId !== 'all' && { brandCategories: { some: { categoryId } } }),
     };
 
+    
+
     try {
         const [data, total, activeCount, inactiveCount] = await Promise.all([
             prisma.brand.findMany({

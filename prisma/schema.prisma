@@ -33,7 +33,7 @@ model AdminContact {
   @@index([city], map: "index_admin_contact_city")
   @@index([email], map: "index_admin_contact_email")
   @@index([state], map: "index_admin_contact_state")
-  @@map("admin_contacts")
+  @@map("admin_contact")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -110,7 +110,7 @@ model Contact {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Dealer {
-  id               BigInt    @id @default(autoincrement())
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   firmName         String    @map("firm_name")
   gstNumber        String?   @map("gst_number")
   mobileNo         String?   @map("mobile_no")
