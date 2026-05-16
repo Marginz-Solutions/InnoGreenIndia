@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Briefcase, Plus, Search, Edit2, Trash2, Globe, SlidersHorizontal, CheckCircle, XCircle, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 import type { Brand } from '@/components/website-customization/types/common.types';
 import { StatusBadge } from '@/components/website-customization/shared/StatusBadge';
@@ -10,7 +11,7 @@ import { EmptyState } from '@/components/website-customization/shared/EmptyState
 import { Breadcrumb } from '@/components/website-customization/shared/Breadcrumb';
 import KpiCard from '@/components/website-customization/shared/KpiCard';
 import FilterPill from '@/components/website-customization/shared/FilterPill';
-import { BrandModal } from '@/components/website-customization/brands/BrandModal';
+import { BrandModal } from './_components/BrandModal';
 
 import { api } from '@/lib/axiosInstance';
 import { useCategory } from '@/lib/category-context';
@@ -21,12 +22,9 @@ const LIMIT = 12;
 
 export default function BrandsPage() {
   const [items, setItems] = useState<Brand[]>([]);
-  const { categories } = useCategory();
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const [total, setTotal] = useState(0);
+  const [pagination, setPagination] = useState({ page: 1, loading: false, hasNextPage: false, total: 0 });
   const [stats, setStats] = useState<{ brandsTotal: number; brandsActive: number; brandsInactive: number } | null>(null);
+  const { categories } = useCategory();
 
   const [filters, setFilters] = useState<BrandFilters>({ query: '', category: 'all', status: 'all' });
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -44,7 +42,7 @@ export default function BrandsPage() {
   }, [filters.query]);
 
   const fetchBrands = useCallback(async (reset: boolean, currentPage: number) => {
-    setLoading(true);
+    setPagination(p => ({ ...p, loading: true }));
     try {
       const params: Record<string, string | number> = {
         page: currentPage, limit: LIMIT, search: debouncedQuery,
@@ -58,43 +56,42 @@ export default function BrandsPage() {
         stats: { brandsTotal: number; brandsActive: number; brandsInactive: number };
       };
       setItems(prev => reset ? (res.data ?? []) : [...prev, ...(res.data ?? [])]);
-      setTotal(res.pagination?.total ?? 0);
-      setHasNextPage(res.pagination?.hasNextPage ?? false);
+      setPagination(p => ({ ...p, total: res.pagination?.total ?? 0, hasNextPage: res.pagination?.hasNextPage ?? false }));
       setStats(res.stats ?? null);
     } 
     catch(error) {
       toast.error(error instanceof Error ? error.message : 'Could not load brands');
       if (reset) setItems([]);
-    } 
+    }
     finally {
-      setLoading(false);
+      setPagination(p => ({ ...p, loading: false }));
     }
   }, [debouncedQuery, filters.category, filters.status]);
 
   // Reset + fetch when filters change
   useEffect(() => {
-    setPage(1);
+    setPagination(p => ({ ...p, page: 1 }));
     void fetchBrands(true, 1);
   }, [fetchBrands]);
 
   // Fetch next page when page increments (not on reset)
   useEffect(() => {
-    if (page === 1) return;
-    void fetchBrands(false, page);
-  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (pagination.page === 1) return;
+    void fetchBrands(false, pagination.page);
+  }, [pagination.page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Infinite scroll sentinel
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && hasNextPage && !loading) {
-        setPage(p => p + 1);
+      if(entry.isIntersecting && pagination.hasNextPage && !pagination.loading) {
+        setPagination(p => ({ ...p, page: p.page + 1 }));
       }
     }, { rootMargin: '200px' });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasNextPage, loading]);
+  }, [pagination.hasNextPage, pagination.loading]);
 
   const setFilter = <K extends keyof BrandFilters>(key: K, value: BrandFilters[K]) =>
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -117,7 +114,7 @@ export default function BrandsPage() {
     try {
       await api.delete(`/brands/${id}`);
       setItems(prev => prev.filter(i => i.id !== id));
-      setTotal(t => t - 1);
+      setPagination(p => ({ ...p, total: p.total - 1 }));
       toast.success('Brand deleted successfully');
     } 
     catch(error) {
@@ -160,7 +157,7 @@ export default function BrandsPage() {
         { label: 'Inactive', value: stats.brandsInactive, sub: 'hidden from site' },
       ]
     : [
-        { label: 'Total Brands', value: total, sub: 'loaded' },
+        { label: 'Total Brands', value: pagination.total, sub: 'loaded' },
         { label: 'Active', value: items.filter(b => b.isActive).length, sub: 'this page' },
         { label: 'Inactive', value: items.filter(b => !b.isActive).length, sub: 'this page' },
       ];
@@ -217,13 +214,13 @@ export default function BrandsPage() {
             </button>
           )}
           <span className="ml-auto text-xs text-[#9bb4a1] font-medium">
-            {loading && items.length === 0 ? 'Loading…' : `${total} brand${total !== 1 ? 's' : ''}`}
+            {pagination.loading && items.length === 0 ? 'Loading…' : `${pagination.total} brand${pagination.total !== 1 ? 's' : ''}`}
           </span>
         </div>
       </div>
 
       {/* List */}
-      {!loading && items.length === 0 ? (
+      {!pagination.loading && items.length === 0 ? (
         <EmptyState icon={Briefcase} title="No brands yet"
           desc="Add your first brand partner to feature it on the website" onAdd={openAdd} />
       ) : (
@@ -232,9 +229,9 @@ export default function BrandsPage() {
             {items.map(b => (
               <div key={b.id} className="card flex flex-col gap-4">
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="w-16 h-16 rounded-2xl bg-[#edf8ee] border border-[#e2ece3] flex items-center justify-center shrink-0 overflow-hidden">
+                  <div className="w-16 h-16 rounded-2xl bg-[#edf8ee] border border-[#e2ece3] flex items-center justify-center shrink-0 overflow-hidden relative">
                     {b.logoUrl
-                      ? <img src={b.logoUrl} alt="" className="w-full h-full object-contain p-1 rounded-xl" />
+                      ? <Image src={b.logoUrl} alt={b.name} fill className="object-contain p-1 rounded-xl" />
                       : <Briefcase size={24} className="text-[#1f7a36]" />}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -283,12 +280,12 @@ export default function BrandsPage() {
           {/* Infinite scroll sentinel */}
           <div ref={sentinelRef} className="h-4" />
 
-          {loading && items.length > 0 && (
+          {pagination.loading && items.length > 0 && (
             <div className="flex justify-center py-6">
               <Loader2 size={20} className="animate-spin text-[#1f7a36]" />
             </div>
           )}
-          {!hasNextPage && items.length > 0 && !loading && (
+          {!pagination.hasNextPage && items.length > 0 && !pagination.loading && (
             <p className="text-center text-xs text-[#9bb4a1] py-6">All brands loaded</p>
           )}
         </>

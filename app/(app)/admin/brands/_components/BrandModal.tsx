@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, Info, Tag, Users, Settings, Phone, Mail, X } from 'lucide-react';
+import { Image as ImageIcon, Info, Tag, Users, Settings, Phone, Mail, X } from 'lucide-react';
+import Image from 'next/image';
 
 import { Modal } from '@/components/website-customization/shared/Modal';
 import { FormField } from '@/components/website-customization/form/FormField';
@@ -161,14 +162,14 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
         {error && <ErrorBanner error={typeof error === 'string' ? error : error?.message ?? 'An error occurred'} />}
 
         {/* Media */}
-        <Section icon={Image} label="Media" />
+        <Section icon={ImageIcon} label="Media" />
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Logo" className="input-required" error={getError('logoFile')}>
-            <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden ${
+            <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden relative ${
               hasError('logoFile') ? 'border-red-500' : 'border-[#c5ddc8]'
             }`}>
               {form.logoPreview
-                ? <img src={form.logoPreview} alt="logo" className="h-full w-full object-contain p-2" />
+                ? <Image src={form.logoPreview} alt="logo" fill className="object-contain p-2" />
                 : <span className="text-xs text-[#61756a] font-medium text-center px-2">Logo (PNG/JPG/WEBP/SVG)</span>
               }
               <input ref={logoRef} type="file" name="logo" accept="image/png,image/jpeg,image/webp,image/svg+xml"
@@ -190,11 +191,11 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
                 </button>
               )}
 
-              <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden ${
+              <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden relative ${
                 hasError('imageFile') ? 'border-red-500' : 'border-[#c5ddc8]'
               }`}>
                 {form.imagePreview
-                  ? <img src={form.imagePreview} alt="banner" className="h-full w-full object-contain p-2" />
+                  ? <Image src={form.imagePreview} alt="banner" fill className="object-contain p-2" />
                   : <span className="text-xs text-[#61756a] font-medium text-center px-2">Banner / hero image</span>
                 }
                 <input ref={imageRef} type="file" name="image" accept="image/png,image/jpeg,image/webp,image/svg+xml"
