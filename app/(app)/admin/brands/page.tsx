@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Briefcase, Plus, Search, Edit2, Trash2, Globe, SlidersHorizontal, CheckCircle, XCircle, X, Loader2 } from 'lucide-react';
 
-import type { Brand, Category } from '@/components/website-customization/types/common.types';
+import type { Brand } from '@/components/website-customization/types/common.types';
 import { StatusBadge } from '@/components/website-customization/shared/StatusBadge';
 import { EmptyState } from '@/components/website-customization/shared/EmptyState';
 import { Breadcrumb } from '@/components/website-customization/shared/Breadcrumb';
@@ -12,6 +12,7 @@ import FilterPill from '@/components/website-customization/shared/FilterPill';
 import { BrandModal } from '@/components/website-customization/brands/BrandModal';
 import { api } from '@/lib/axiosInstance';
 import ErrorBanner from '@/components/ErrorBanner';
+import { useCategory } from '@/lib/category-context';
 
 type BrandFilters = { query: string; category: string; status: 'all' | 'active' | 'inactive' };
 
@@ -19,7 +20,7 @@ const LIMIT = 12;
 
 export default function BrandsPage() {
   const [items, setItems] = useState<Brand[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { categories } = useCategory();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -41,13 +42,6 @@ export default function BrandsPage() {
     const t = setTimeout(() => setDebouncedQuery(filters.query.trim()), 350);
     return () => clearTimeout(t);
   }, [filters.query]);
-
-  const fetchCategories = useCallback(async () => {
-    try {
-      const res = await api.get('/categories') as { data: Category[] };
-      setCategories(res.data ?? []);
-    } catch { setCategories([]); }
-  }, []);
 
   const fetchBrands = useCallback(async (reset: boolean, currentPage: number) => {
     setLoading(true);
@@ -100,8 +94,6 @@ export default function BrandsPage() {
     observer.observe(el);
     return () => observer.disconnect();
   }, [hasNextPage, loading]);
-
-  useEffect(() => { void fetchCategories(); }, [fetchCategories]);
 
   const setFilter = <K extends keyof BrandFilters>(key: K, value: BrandFilters[K]) =>
     setFilters(prev => ({ ...prev, [key]: value }));

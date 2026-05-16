@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { AuthGuard } from '@/components/auth-guard';
+import { CategoryProvider } from '@/lib/category-context';
 import { MobileSidebar } from '@/components/website-customization/layout/MobileSidebar';
 import { PageHeader } from '@/components/website-customization/layout/PageHeader';
 import { Sidebar } from '@/components/website-customization/layout/Sidebar';
@@ -69,7 +70,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <div className="flex-1 min-w-0">
             <div className="card" style={{ minHeight: 500 }}>
-              {children}
+              <CategoryProvider>
+                {children}
+              </CategoryProvider>
             </div>
           </div>
         </div>
