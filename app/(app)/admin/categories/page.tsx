@@ -9,14 +9,13 @@ import { EmptyState } from '@/components/website-customization/shared/EmptyState
 import { Modal } from '@/components/website-customization/shared/Modal';
 import { FormField } from '@/components/website-customization/form/FormField';
 import { Input } from '@/components/website-customization/form/Input';
-import ErrorBanner from '@/components/ErrorBanner';
 
 import { api } from '@/lib/axiosInstance';
 import { useCategory } from '@/lib/category-context';
+import { toast } from 'sonner';
 
 export default function CategoriesPage() {
     const { categories, isLoading: loading, error: contextError, refreshCategories } = useCategory();
-    const [mutationError, setMutationError] = useState<string | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [newName, setNewName] = useState('');
     const [savingNew, setSavingNew] = useState(false);
@@ -25,7 +24,11 @@ export default function CategoriesPage() {
     const [savingId, setSavingId] = useState<string | null>(null);
     const editInputRef = useRef<HTMLInputElement>(null);
 
-    const error = mutationError || contextError;
+    useEffect(() => {
+        if(contextError) {
+            toast.error(contextError);
+        }
+    }, [contextError]);
 
     useEffect(() => {
         if(editingId && editInputRef.current) {
@@ -56,15 +59,15 @@ export default function CategoriesPage() {
         const name = newName.trim();
         if(!name || savingNew) return;
         setSavingNew(true);
-        setMutationError(null);
         try {
             await api.post('/categories', { name });
             await refreshCategories();
+            toast.success('Category created successfully');
             setModalOpen(false);
             setNewName('');
         } 
         catch(error) {
-            setMutationError(error instanceof Error ? error.message : 'Could not create category');
+            toast.error(error instanceof Error ? error.message : 'Could not create category');
         } 
         finally {
             setSavingNew(false);
@@ -80,15 +83,15 @@ export default function CategoriesPage() {
         const name = editDraft.trim();
         if(!name || savingId) return;
         setSavingId(id);
-        setMutationError(null);
         try {
             await api.patch(`/categories/${id}`, { name });
             await refreshCategories();
+            toast.success('Category updated successfully');
             setEditingId(null);
             setEditDraft('');
         } 
         catch(error) {
-            setMutationError(error instanceof Error ? error.message : 'Could not update category');
+            toast.error(error instanceof Error ? error.message : 'Could not update category');
         } 
         finally {
             setSavingId(null);
@@ -97,17 +100,17 @@ export default function CategoriesPage() {
 
     const removeCategory = async (id: string) => {
         if(!confirm('Delete this category?')) return;
-        setMutationError(null);
         try {
             await api.delete(`/categories/${id}`);
             await refreshCategories();
+            toast.success('Category deleted successfully');
             if(editingId === id) {
                 setEditingId(null);
                 setEditDraft('');
             }
         } 
         catch(error) {
-            setMutationError(error instanceof Error ? error.message : 'Could not delete');
+            toast.error(error instanceof Error ? error.message : 'Could not delete');
         }
     };
 
@@ -123,8 +126,6 @@ export default function CategoriesPage() {
                     <Plus size={16} /> New
                 </button>
             </div>
-
-            {error && ( <ErrorBanner error={error} className="mb-4" /> )}
 
             {loading ? (
                 <p className="text-sm text-[#61756a]">Loading categories…</p>

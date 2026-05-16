@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Briefcase, Plus, Search, Edit2, Trash2, Globe, SlidersHorizontal, CheckCircle, XCircle, X, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import type { Brand } from '@/components/website-customization/types/common.types';
 import { StatusBadge } from '@/components/website-customization/shared/StatusBadge';
@@ -10,8 +11,8 @@ import { Breadcrumb } from '@/components/website-customization/shared/Breadcrumb
 import KpiCard from '@/components/website-customization/shared/KpiCard';
 import FilterPill from '@/components/website-customization/shared/FilterPill';
 import { BrandModal } from '@/components/website-customization/brands/BrandModal';
+
 import { api } from '@/lib/axiosInstance';
-import ErrorBanner from '@/components/ErrorBanner';
 import { useCategory } from '@/lib/category-context';
 
 type BrandFilters = { query: string; category: string; status: 'all' | 'active' | 'inactive' };
@@ -21,7 +22,6 @@ const LIMIT = 12;
 export default function BrandsPage() {
   const [items, setItems] = useState<Brand[]>([]);
   const { categories } = useCategory();
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -45,13 +45,12 @@ export default function BrandsPage() {
 
   const fetchBrands = useCallback(async (reset: boolean, currentPage: number) => {
     setLoading(true);
-    if (reset) setError(null);
     try {
       const params: Record<string, string | number> = {
         page: currentPage, limit: LIMIT, search: debouncedQuery,
       };
-      if (filters.category !== 'all') params.categoryId = filters.category;
-      if (filters.status !== 'all') params.status = filters.status;
+      if(filters.category !== 'all') params.categoryId = filters.category;
+      if(filters.status !== 'all') params.status = filters.status;
 
       const res = await api.get('/brands', { params }) as {
         data: Brand[];
@@ -62,10 +61,12 @@ export default function BrandsPage() {
       setTotal(res.pagination?.total ?? 0);
       setHasNextPage(res.pagination?.hasNextPage ?? false);
       setStats(res.stats ?? null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not load brands');
+    } 
+    catch(error) {
+      toast.error(error instanceof Error ? error.message : 'Could not load brands');
       if (reset) setItems([]);
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
   }, [debouncedQuery, filters.category, filters.status]);
@@ -113,13 +114,14 @@ export default function BrandsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Caution: Delete this brand?, If you delete this brand, you lost all the things related to this brand!')) return;
-    setError(null);
     try {
       await api.delete(`/brands/${id}`);
       setItems(prev => prev.filter(i => i.id !== id));
       setTotal(t => t - 1);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not delete');
+      toast.success('Brand deleted successfully');
+    } 
+    catch(error) {
+      toast.error(error instanceof Error ? error.message : 'Could not delete');
     }
   };
 
@@ -127,19 +129,26 @@ export default function BrandsPage() {
     setSaving(true);
     setSaveError(null);
     try {
-      if (editItem) {
+      if(editItem) {
         const res = await api.patch(`/brands/${editItem.id}`, fd) as { data: Brand };
-        if (res.data) setItems(prev => prev.map(i => i.id === editItem.id ? res.data : i));
-      } else {
+        if(res.data) {
+          setItems(prev => prev.map(i => i.id === editItem.id ? res.data : i));
+        }
+        toast.success('Brand updated successfully');
+      } 
+      else {
         const res = await api.post('/brands', fd) as { data: Brand };
-        if (res.data) setItems(prev => [res.data, ...prev]);
+        if(res.data) setItems(prev => [res.data, ...prev]);
+        toast.success('Brand created successfully');
       }
       setModalOpen(false);
       setEditItem(null);
-    } catch (e) {
-      setSaveError(e instanceof Error ? e.message : 'Could not save brand');
-      throw e
-    } finally {
+    } 
+    catch(error) {
+      setSaveError(error instanceof Error ? error.message : 'Could not save brand');
+      throw error
+    } 
+    finally {
       setSaving(false);
     }
   };
@@ -168,8 +177,6 @@ export default function BrandsPage() {
           <Plus size={16} /> Add Brand
         </button>
       </div>
-
-      {error && <ErrorBanner error={error} className="mb-4" />}
 
       <div className="grid grid-cols-3 gap-3 mb-5">
         {kpis.map(k => <KpiCard key={k.label} {...k} />)}
