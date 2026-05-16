@@ -141,7 +141,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
                         },
                     },
                     brandCategories: {
-                        include: { category: { select: { id: true, name: true, slug: true } } },
+                        include: { categories: { select: { id: true, name: true, slug: true } } },
                     }
                 }
             });
@@ -153,7 +153,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
         const formatted = {
             ...brand,
-            categories: brand.brandCategories.map((bc: any) => bc.category),
+            categories: brand.brandCategories.map((bc: any) => bc.categories),
             brandCategories: undefined,
         };
 

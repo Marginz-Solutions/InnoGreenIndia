@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { prisma } from '@/lib/prisma';
 import { getAuthContext } from '@/lib/auth';
 import { generateSlug } from '@/lib/utils';
 
@@ -13,7 +14,7 @@ type RouteContext = { params: Promise<{ id: string }> };
  */
 export async function PATCH(request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
-  const { supabase, user } = await getAuthContext();
+  const { user } = await getAuthContext();
 
   if(!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -32,25 +33,27 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: 'name is required' }, { status: 400 });
   }
 
-  const res = await supabase.from('categories').select('id').eq('name', name).limit(1).maybeSingle();
-  if(res.data) {
-    return NextResponse.json({ error: 'Category name already exists in the db' }, { status: 400 });
+  try {
+    const exists = await prisma.category.findFirst({
+      where: { name: { contains: name, mode: 'insensitive' as const } },
+      select: { id: true }
+    })
+
+    if(exists) {
+      return NextResponse.json({ error: 'Category name already exists in the db' }, { status: 400 });
+    }
+  
+    const slug = generateSlug(name);
+    const updatedCategoy = await prisma.category.update({
+      where: { id },
+      data: { name, slug }
+    })
+
+    return NextResponse.json({ data: updatedCategoy });
   }
-
-  const slug = generateSlug(name);
-
-  const { data, error } = await supabase
-    .from('categories')
-    .update({ name, slug })
-    .eq('id', id)
-    .select('id, name, slug, created_at, updated_at')
-    .single();
-
-  if(error) {
+  catch(error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  return NextResponse.json({ data });
 }
 
 /**
@@ -60,17 +63,21 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
  */
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
-  const { supabase, user } = await getAuthContext();
+  const { user } = await getAuthContext();
 
   if(!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { error } = await supabase.from('categories').delete().eq('id', id);
+  try {
+    // const { error } = await supabase.from('categories').delete().eq('id', id);
+    const deletedCategory = await prisma.category.delete({
+      where: { id }
+    })
 
-  if(error) {
+    return NextResponse.json({ data: deletedCategory });
+  }
+  catch(error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  return NextResponse.json({ ok: true });
 }
