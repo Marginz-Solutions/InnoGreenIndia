@@ -7,18 +7,20 @@ export type Product = {
     id: string;
     name: string;
     slug: string;
-    brandId: string | null;
-    categoryId: string | null;
+    brand_id: string | null;
+    category_id: string | null;
     description: string | null;
-    imageUrl: string | null;
+    image_url: string | null;
     tags: string[];
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
     sku: string | null;
     featured: boolean;
     status: string;
-    shortDescription: string | null;
+    short_description: string | null;
+    quantity: number;
+    quantity_unit: string;
 };
 
 export type Category = {

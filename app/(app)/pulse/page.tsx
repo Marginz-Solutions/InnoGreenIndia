@@ -36,9 +36,9 @@ import { Input } from '@/components/website-customization/form/Input';
 import { Select } from '@/components/website-customization/form/Select';
 
 export const PULSE_SEED: PulseItem[] = [
-  { id: '1', title: 'Premium Fertilizer Mix', price: 4500, unit: '50kg bag', available: true, status: 'active', category: 'Fertilizers', createdAt: '2025-05-10' },
-  { id: '2', title: 'Organic Seed Pack – Rabi', price: 2200, unit: 'per pack', available: true, status: 'active', category: 'Seeds', createdAt: '2025-05-09' },
-  { id: '3', title: 'Micro-nutrient Spray', price: 850, unit: 'per litre', available: false, status: 'draft', category: 'Pesticides', createdAt: '2025-05-08' },
+  { id: '1', title: 'Premium Fertilizer Mix', price: 4500, unit: '50kg bag', available: true, status: 'active', category: 'Fertilizers', created_at: '2025-05-10' },
+  { id: '2', title: 'Organic Seed Pack – Rabi', price: 2200, unit: 'per pack', available: true, status: 'active', category: 'Seeds', created_at: '2025-05-09' },
+  { id: '3', title: 'Micro-nutrient Spray', price: 850, unit: 'per litre', available: false, status: 'draft', category: 'Pesticides', created_at: '2025-05-08' },
 ];
 
 export default function PulsePage() {
@@ -77,7 +77,7 @@ export default function PulsePage() {
       category: fd.get('category') as string,
       status: fd.get('status') as 'active' | 'draft',
       available: editItem?.available ?? true,
-      createdAt: editItem?.createdAt ?? new Date().toISOString().slice(0, 10),
+      created_at: editItem?.created_at ?? new Date().toISOString().slice(0, 10),
     };
     setItems((prev) =>
       editItem ? prev.map((i) => (i.id === editItem.id ? payload : i)) : [payload, ...prev]
@@ -180,7 +180,7 @@ export default function PulsePage() {
                   <td>
                     <StatusBadge active={item.status === 'active'} labels={['Active', 'Draft']} />
                   </td>
-                  <td className="text-[#61756a]">{item.createdAt}</td>
+                  <td className="text-[#61756a]">{item.created_at}</td>
                   <td>
                     <div className="flex items-center gap-2">
                       <button onClick={() => openEdit(item)} className="btn" style={{ padding: '7px 10px' }}>

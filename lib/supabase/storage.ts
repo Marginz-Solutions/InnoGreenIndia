@@ -1,5 +1,5 @@
 import { createClient }
-from "@/lib/supabase/client";
+  from "@/lib/supabase/client";
 
 export const uploadProductImage =
   async (file: File) => {
@@ -36,16 +36,16 @@ export const uploadProductImage =
     return publicUrl;
   };
 
-  export const deleteProductImage =
-  async (imageUrl: string) => {
+export const deleteProductImage =
+  async (image_url: string) => {
     try {
       const supabase =
         createClient();
 
-      if (!imageUrl) return;
+      if (!image_url) return;
 
       const fileName =
-        imageUrl
+        image_url
           .split("/")
           .pop();
 

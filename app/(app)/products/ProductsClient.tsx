@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Package,
   Plus,
@@ -16,7 +16,6 @@ import {
 
 import { toast } from "sonner";
 import { api } from "@/lib/axiosInstance";
-import { deleteProductImage } from "@/lib/supabase/storage";
 import { Breadcrumb } from '@/components/website-customization/shared/Breadcrumb';
 import { Pagination } from '@/components/website-customization/shared/Pagination';
 import { StatusBadge } from '@/components/website-customization/shared/StatusBadge';
@@ -25,10 +24,6 @@ import { ProductCard } from '@/components/website-customization/products/Product
 import { ProductModal } from '@/components/website-customization/products/Productmodal';
 import { Product, ProductFilters } from '@/components/website-customization/types/common.types';
 import { Brand, Category } from '@/lib/global.types';
-
-// ─── Mock Data ─────────────────────────────────────────────────────────────────
-
-const PAGE_SIZE = 6;
 
 // ─── Filter Pill ───────────────────────────────────────────────────────────────
 const FilterPill = ({
@@ -45,8 +40,8 @@ const FilterPill = ({
   <button
     onClick={onClick}
     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150 ${active
-        ? 'bg-[#1f7a36] text-white border-[#1f7a36] shadow-sm'
-        : 'bg-white text-[#61756a] border-[#d1dfd5] hover:border-[#1f7a36] hover:text-[#1f7a36]'
+      ? 'bg-[#1f7a36] text-white border-[#1f7a36] shadow-sm'
+      : 'bg-white text-[#61756a] border-[#d1dfd5] hover:border-[#1f7a36] hover:text-[#1f7a36]'
       }`}
   >
     {Icon && <Icon size={11} />}
@@ -73,6 +68,7 @@ const KpiCard = ({
   </div>
 );
 
+
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function ProductsClient({
   initialProducts,
@@ -83,13 +79,21 @@ export default function ProductsClient({
   brands: Brand[];
   categories: Category[];
 }) {
+
   const [items, setItems] = useState<Product[]>(initialProducts);
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<ProductFilters>({
     query: '',
     category: 'all',
     status: 'all',
     featured: 'all',
   });
+  const [
+  debouncedQuery,
+  setDebouncedQuery,
+] = useState(
+  filters.query
+);
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
@@ -106,41 +110,8 @@ export default function ProductsClient({
   const getCategoryName = (id?: string | null) =>
     categories.find((c) => c.id === id)?.name ?? "—";
 
-  // ── Filtered items ──
-  const filtered = useMemo(() => {
-    return items.filter((p) => {
-      const q = filters.query.toLowerCase();
-      const matchQuery =
-        !q ||
-        (p.name ?? "")
-          .toLowerCase()
-          .includes(q) ||
-        (p.sku ?? "")
-          .toLowerCase()
-          .includes(q) ||
-        (p.shortDescription ?? "")
-          .toLowerCase()
-          .includes(q) ||
-        (p.tags ?? []).some((t) =>
-          t.toLowerCase().includes(q)
-        );
-
-      const matchCat =
-        filters.category === 'all' || p.categoryId === filters.category;
-
-      const matchStatus =
-        filters.status === 'all' || p.status === filters.status;
-
-      const matchFeatured =
-        filters.featured === 'all' ||
-        (filters.featured === 'yes' ? p.featured : !p.featured);
-
-      return matchQuery && matchCat && matchStatus && matchFeatured;
-    });
-  }, [items, filters]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  
+  const [totalPages, setTotalPages] = useState(1);
 
   const activeFiltersCount = [
     filters.category !== 'all',
@@ -153,135 +124,298 @@ export default function ProductsClient({
     setPage(1);
   };
 
+  useEffect(() => {
+  const timer =
+    setTimeout(() => {
+      setDebouncedQuery(
+        filters.query
+      );
+    }, 400);
+
+  return () =>
+    clearTimeout(timer);
+}, [filters.query]);
+
   // ── Handlers ──
   const openAdd = () => { setEditProduct(null); setModalOpen(true); };
   const openEdit = (p: Product) => { setEditProduct(p); setModalOpen(true); };
 
-  const handleDelete = async (
-    id: string
-  ) => {
+  const fetchProducts =
+  async () => {
     try {
-      const product =
-        items.find((p) => p.id === id);
+      setLoading(true);
 
-      if (!product) return;
-
-      // delete image first
-      if (product.imageUrl) {
-        await deleteProductImage(
-          product.imageUrl
+      const res =
+        await api.get(
+          `/products?query=${debouncedQuery}&status=${filters.status}&featured=${filters.featured}&category=${filters.category}&page=${page}`
         );
-      }
 
-      // delete db row
-      await api.delete(
-        `/products/${id}`
+      setItems(
+        res.data ?? []
       );
 
-      setItems((prev) =>
-        prev.filter(
-          (p) => p.id !== id
-        )
+      setTotalPages(
+        res.data.pagination
+          ?.totalPages ?? 1
       );
     } catch (err) {
       toast.error(
-        err instanceof Error
-          ? err.message
+        "Failed to fetch products"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+  fetchProducts();
+}, [
+  debouncedQuery,
+  filters.category,
+  filters.status,
+  filters.featured,
+  page,
+]);
+
+const handleExcelUpload =
+  async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    try {
+      const file =
+        e.target.files?.[0];
+
+      if (!file) return;
+
+      const formData =
+        new FormData();
+
+      formData.append(
+        "file",
+        file
+      );
+
+      await api.post(
+        "/products/import",
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success(
+        "Products imported"
+      );
+
+      await fetchProducts();
+    } catch (err: any) {
+      toast.error(
+        err.message ||
+          "Import failed"
+      );
+    }
+  };
+
+  const handleDelete = async (
+  id: string
+) => {
+  try {
+    await api.delete(
+      `/products/${id}`
+    );
+
+    await fetchProducts();
+
+toast.success(
+  "Product deleted"
+);
+  } catch (err) {
+    toast.error(
+      typeof err === "string"
+        ? err
+        : "Something went wrong"
+    );
+  }
+};
+
+  const handleToggleFeatured =
+  async (id: string) => {
+    try {
+      const product =
+        items.find(
+          (p) => p.id === id
+        );
+
+      if (!product) return;
+
+      const result =
+        await api.patch(
+          `/products/${id}`,
+          {
+            featured:
+              !product.featured,
+          }
+        );
+
+        await fetchProducts();
+
+      toast.success(
+        "Featured updated"
+      );
+    } catch (err) {
+      toast.error(
+        typeof err === "string"
+          ? err
           : "Something went wrong"
       );
     }
   };
 
-  const handleToggleFeatured =
-    async (id: string) => {
-      try {
-        const product =
-          items.find(
-            (p) => p.id === id
-          );
-
-        if (!product) return;
-
-        const updatedFeatured =
-          !product.featured;
-
-        const result =
-          await api.patch(
-            `/products/${id}`,
-            {
-              ...product,
-              featured:
-                updatedFeatured,
-            }
-          );
-
-        setItems((prev) =>
-          prev.map((p) =>
-            p.id === id
-              ? result.data
-              : p
-          )
-        );
-      } catch (err) {
-        toast.error(
-          err instanceof Error
-            ? err.message
-            : "Something went wrong"
-        );
-      }
-    };
-
   const handleSave = async (
-    product: Product
-  ) => {
-    try {
-      const payload = {
-        ...product,
+  product: Product,
+  selectedFile:
+    File | null
+) => {
+  try {
+    const formData =
+      new FormData();
 
-        tags: product.tags ?? [],
-      };
+    formData.append(
+      "name",
+      product.name
+    );
 
-      // CREATE
-      if (!editProduct) {
-        const result =
-          await api.post(
-            "/products",
-            payload
-          );
+    formData.append(
+      "slug",
+      product.slug
+    );
 
-        setItems((prev) => [
-          result.data,
-          ...prev,
-        ]);
-      }
+    formData.append(
+      "brand_id",
+      product.brand_id || ""
+    );
 
-      // UPDATE
-      else {
-        const result =
-          await api.patch(
-            `/products/${product.id}`,
-            payload
-          );
+    formData.append(
+      "category_id",
+      product.category_id || ""
+    );
 
-        setItems((prev) =>
-          prev.map((p) =>
-            p.id === product.id
-              ? result.data
-              : p
-          )
-        );
-      }
+    formData.append(
+      "description",
+      product.description
+    );
 
-      setModalOpen(false);
-      setEditProduct(null);
-    } catch (err) {
-      toast.error(
-  err instanceof Error
-    ? err.message
-    : "Something went wrong"
-);
+    formData.append(
+      "short_description",
+      product.short_description
+    );
+
+    formData.append(
+      "sku",
+      product.sku
+    );
+
+    formData.append(
+      "status",
+      product.status
+    );
+
+    formData.append(
+      "featured",
+      String(
+        product.featured
+      )
+    );
+
+    formData.append(
+      "is_active",
+      String(
+        product.is_active
+      )
+    );
+
+    formData.append(
+      "tags",
+      JSON.stringify(
+        product.tags ?? []
+      )
+    );
+
+    formData.append(
+      "quantity",
+      String(
+        product.quantity || 0
+      )
+    );
+
+    formData.append(
+      "quantity_unit",
+      product.quantity_unit || ''
+    );
+
+    // image
+    if (selectedFile) {
+      formData.append(
+        "image",
+        selectedFile
+      );
     }
-  };
+
+    // CREATE
+    if (!editProduct) {
+      const result =
+        await api.post(
+          "/products",
+          formData,
+          {
+            headers: {
+              "Content-Type":
+                "multipart/form-data",
+            },
+          }
+        );
+
+      await fetchProducts();
+
+      toast.success(
+        "Product created"
+      );
+    }
+
+    // UPDATE
+    else {
+      const result =
+        await api.patch(
+          `/products/${product.id}`,
+          formData,
+          {
+            headers: {
+              "Content-Type":
+                "multipart/form-data",
+            },
+          }
+        );
+
+      await fetchProducts();
+
+      toast.success(
+        "Product updated"
+      );
+    }
+
+    setModalOpen(false);
+    setEditProduct(null);
+  } catch (err) {
+    toast.error(
+      typeof err === "string"
+        ? err
+        : "Something went wrong"
+    );
+  }
+};
 
   // ── KPIs ──
   const kpis = [
@@ -300,7 +434,7 @@ export default function ProductsClient({
     },
     {
       label: 'Categories',
-      value: new Set(items.map((p) => p.categoryId)).size,
+      value: new Set(items.map((p) => p.category_id)).size,
       sub: 'product types',
     },
   ];
@@ -317,6 +451,7 @@ export default function ProductsClient({
             Manage your product catalogue and website listings
           </p>
         </div>
+        <div className='flex items-center gap-4'>
         <button
           onClick={openAdd}
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#1f7a36] hover:bg-[#166534] text-white text-sm font-semibold rounded-xl transition-colors shadow-sm shadow-[#1f7a36]/20"
@@ -324,6 +459,18 @@ export default function ProductsClient({
           <Plus size={16} />
           Add Product
         </button>
+
+        <label className="px-4 py-2.5 border border-[#cfe0d2] bg-white hover:bg-[#f6fbf7] text-sm font-semibold rounded-xl cursor-pointer">
+  Upload Excel
+
+  <input
+    type="file"
+    accept=".xlsx,.xls"
+    className="hidden"
+    onChange={handleExcelUpload}  
+  />
+</label>
+</div>
       </div>
 
       {/* ── KPIs ── */}
@@ -440,13 +587,15 @@ export default function ProductsClient({
 
           {/* Results count */}
           <span className="ml-auto text-xs text-[#9bb4a1] font-medium">
-            {filtered.length} product{filtered.length !== 1 ? 's' : ''}
+            {items.length} product{items.length !== 1 ? 's' : ''}
           </span>
         </div>
       </div>
 
+      
       {/* ── Product Grid / Empty ── */}
-      {paginated.length === 0 ? (
+      {items.length === 0 ?
+       (
         <EmptyState
           icon={Package}
           title="No products found"
@@ -459,12 +608,12 @@ export default function ProductsClient({
         />
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {paginated.map((p) => (
+          {items.map((p) => (
             <ProductCard
               key={p.id}
               product={p}
-              brandName={getBrandName(p.brandId)}
-              categoryName={getCategoryName(p.categoryId)}
+              brandName={getBrandName(p.brand_id)}
+              categoryName={getCategoryName(p.category_id)}
               onEdit={openEdit}
               onDelete={handleDelete}
               onToggleFeatured={handleToggleFeatured}
@@ -474,15 +623,15 @@ export default function ProductsClient({
       ) : (
         /* ── List view ── */
         <div className="flex flex-col gap-2">
-          {paginated.map((p) => (
+          {items.map((p) => (
             <div
               key={p.id}
               className="bg-white border border-[#e2ece3] rounded-2xl px-4 py-3.5 flex items-center gap-4 hover:shadow-md transition-all duration-150"
             >
               {/* Thumb */}
               <div className="w-12 h-12 rounded-xl bg-[#f0f8f1] border border-[#e2ece3] flex items-center justify-center shrink-0">
-                {p.imageUrl ? (
-                  <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover rounded-xl" />
+                {p.image_url ? (
+                  <img src={p.image_url} alt={p.name} className="w-full h-full object-cover rounded-xl" />
                 ) : (
                   <Package size={20} className="text-[#b8d4bb]" />
                 )}
@@ -501,9 +650,9 @@ export default function ProductsClient({
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-[#61756a] truncate mt-0.5">{p.shortDescription}</p>
+                <p className="text-xs text-[#61756a] truncate mt-0.5">{p.short_description}</p>
                 <div className="flex flex-wrap gap-1 mt-1.5">
-                  {p.tags.slice(0, 3).map((t) => (
+                  {(p.tags ?? []).slice(0, 3).map((t) => (
                     <span key={t} className="px-1.5 py-0.5 bg-[#edf8ee] text-[#1f7a36] text-[10px] font-semibold rounded">
                       {t}
                     </span>
@@ -515,7 +664,7 @@ export default function ProductsClient({
               <div className="flex items-center gap-3 shrink-0">
                 <div className="hidden md:flex flex-col items-end gap-1">
                   <StatusBadge active={p.status === 'active'} />
-                  <span className="text-[11px] text-[#9bb4a1]">{getCategoryName(p.categoryId)}</span>
+                  <span className="text-[11px] text-[#9bb4a1]">{getCategoryName(p.category_id)}</span>
                 </div>
                 <button
                   onClick={() => openEdit(p)}
@@ -536,7 +685,7 @@ export default function ProductsClient({
       )}
 
       {/* ── Pagination ── */}
-      {filtered.length > PAGE_SIZE && (
+      {totalPages > 1 && (
         <Pagination
           page={page}
           total={totalPages}
