@@ -146,7 +146,7 @@ export default function ProductsDashboardClient({
     Object.fromEntries(brands.map((b) => [b.id, b.name])), [brands]);
 
   // KPIs
-  const activeProducts = products.filter((p) => p.isActive);
+  const activeProducts = products.filter((p) => p.is_active);
   const featuredProducts = products.filter((p) => p.featured);
   const activeBrands = brands.filter((b) => b.is_active);
 
@@ -154,7 +154,7 @@ export default function ProductsDashboardClient({
   const perCategory = useMemo(() => {
     const map: Record<string, number> = {};
     products.forEach((p) => {
-      const name = p.categoryId ? (categoryMap[p.categoryId] ?? "Unknown") : "Uncategorised";
+      const name = p.category_id ? (categoryMap[p.category_id] ?? "Unknown") : "Uncategorised";
       map[name] = (map[name] ?? 0) + 1;
     });
     return Object.entries(map).sort((a, b) => b[1] - a[1]);
@@ -164,7 +164,7 @@ export default function ProductsDashboardClient({
   const perBrand = useMemo(() => {
     const map: Record<string, number> = {};
     products.forEach((p) => {
-      const name = p.brandId ? (brandMap[p.brandId] ?? "Unknown") : "No brand";
+      const name = p.brand_id ? (brandMap[p.brand_id] ?? "Unknown") : "No brand";
       map[name] = (map[name] ?? 0) + 1;
     });
     return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 6);
@@ -180,8 +180,8 @@ export default function ProductsDashboardClient({
   // Filtered products table
   const tabFiltered = useMemo(() => {
     let list = products;
-    if (productTab === "active") list = list.filter((p) => p.isActive);
-    if (productTab === "inactive") list = list.filter((p) => !p.isActive);
+    if (productTab === "active") list = list.filter((p) => p.is_active);
+    if (productTab === "inactive") list = list.filter((p) => !p.is_active);
     if (productTab === "featured") list = list.filter((p) => p.featured);
     if (search) {
       const q = search.toLowerCase();
@@ -219,7 +219,7 @@ export default function ProductsDashboardClient({
           <p className="text-sm text-gray-500 mt-0.5">Overview of products, brands, Dealers and categories</p>
         </div>
         <span className="text-xs text-gray-400">
-          Last updated: {timeAgo(products[0]?.updatedAt ?? new Date().toISOString())}
+          Last updated: {timeAgo(products[0]?.updated_at ?? new Date().toISOString())}
         </span>
       </div>
 
@@ -375,7 +375,7 @@ export default function ProductsDashboardClient({
           )}
         </div>
       </div>
-     
+
       {/* ── Products table ────────────────────────────────────────────────────── */}
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
 
@@ -387,8 +387,8 @@ export default function ProductsDashboardClient({
                 key={t}
                 onClick={() => setProductTab(t)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border capitalize ${productTab === t
-                    ? "bg-[#edf8ee] text-[#1f7a36] border-[#b6debb]"
-                    : "bg-white text-[#61756a] border-[#d1dfd5] hover:border-[#9bb4a1]"
+                  ? "bg-[#edf8ee] text-[#1f7a36] border-[#b6debb]"
+                  : "bg-white text-[#61756a] border-[#d1dfd5] hover:border-[#9bb4a1]"
                   }`}
               >
                 {t}
@@ -442,8 +442,8 @@ export default function ProductsDashboardClient({
                     }`}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      {p.imageUrl ? (
-                        <img src={p.imageUrl} alt={p.name}
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name}
                           className="h-8 w-8 rounded-lg object-cover border border-gray-100 shrink-0" />
                       ) : (
                         <div className="h-8 w-8 rounded-lg bg-[#EAF3DE] flex items-center justify-center
@@ -453,8 +453,8 @@ export default function ProductsDashboardClient({
                       )}
                       <div>
                         <p className="font-medium text-gray-900 whitespace-nowrap leading-tight">{p.name}</p>
-                        {p.shortDescription && (
-                          <p className="text-[11px] text-gray-400 truncate max-w-[180px]">{p.shortDescription}</p>
+                        {p.short_description && (
+                          <p className="text-[11px] text-gray-400 truncate max-w-[180px]">{p.short_description}</p>
                         )}
                       </div>
                     </div>
@@ -463,10 +463,10 @@ export default function ProductsDashboardClient({
                     {p.sku ?? <span className="italic text-gray-300">—</span>}
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
-                    {p.categoryId ? (categoryMap[p.categoryId] ?? "—") : "—"}
+                    {p.category_id ? (categoryMap[p.category_id] ?? "—") : "—"}
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
-                    {p.brandId ? (brandMap[p.brandId] ?? "—") : "—"}
+                    {p.brand_id ? (brandMap[p.brand_id] ?? "—") : "—"}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1 flex-wrap max-w-[160px]">
@@ -478,9 +478,9 @@ export default function ProductsDashboardClient({
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5">
-                      <StatusDot active={p.isActive} />
-                      <span className={`text-[11px] font-medium ${p.isActive ? "text-emerald-600" : "text-gray-400"}`}>
-                        {p.isActive ? "Active" : "Inactive"}
+                      <StatusDot active={p.is_active} />
+                      <span className={`text-[11px] font-medium ${p.is_active ? "text-emerald-600" : "text-gray-400"}`}>
+                        {p.is_active ? "Active" : "Inactive"}
                       </span>
                       {p.featured && (
                         <span className="text-[10px] bg-amber-50 text-amber-600 border border-amber-200
@@ -491,7 +491,7 @@ export default function ProductsDashboardClient({
                     </div>
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
-                    {timeAgo(p.createdAt)}
+                    {timeAgo(p.created_at)}
                   </td>
                 </tr>
               ))}
@@ -514,7 +514,7 @@ export default function ProductsDashboardClient({
         )}
       </div>
       <h1 className="text-xl font-semibold text-gray-900">Dealers</h1>
-       <Dashboard dealers={dealers} enquiries={enquiries} />
+      <Dashboard dealers={dealers} enquiries={enquiries} />
     </div>
   );
 }

@@ -18,11 +18,6 @@ import { rollbackUploads, uploadImage } from "./_upload";
  * @param {number} [query.limit] - Items per page (default: 10)
  */
 export async function GET(request: NextRequest) {
-    const { user } = await getAuthContext();
-
-    if(!user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search') || '';

@@ -40,9 +40,9 @@ export const ProductCard = ({
 
       {/* ── Image / Placeholder ── */}
       <div className="relative h-44 bg-gradient-to-br from-[#f0f8f1] to-[#e6f4ea] overflow-hidden flex items-center justify-center">
-        {p.imageUrl ? (
+        {p.image_url ? (
           <img
-            src={p.imageUrl}
+            src={p.image_url}
             alt={p.name}
             className="w-full h-full object-cover"
           />
@@ -57,11 +57,10 @@ export const ProductCard = ({
         <button
           onClick={() => onToggleFeatured(p.id)}
           title={p.featured ? 'Remove from featured' : 'Mark as featured'}
-          className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full border transition-all duration-200 shadow-sm ${
-            p.featured
-              ? 'bg-amber-400 border-amber-400 text-white shadow-amber-200'
-              : 'bg-white/80 backdrop-blur-sm border-[#e2ece3] text-[#b0bcb5] hover:border-amber-400 hover:text-amber-400'
-          }`}
+          className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full border transition-all duration-200 shadow-sm ${p.featured
+            ? 'bg-amber-400 border-amber-400 text-white shadow-amber-200'
+            : 'bg-white/80 backdrop-blur-sm border-[#e2ece3] text-[#b0bcb5] hover:border-amber-400 hover:text-amber-400'
+            }`}
         >
           <Star size={14} fill={p.featured ? 'currentColor' : 'none'} strokeWidth={2} />
         </button>
@@ -93,12 +92,17 @@ export const ProductCard = ({
           <span className="text-xs font-mono bg-[#f4faf5] border border-[#e2ece3] px-2 py-0.5 rounded-md text-[#61756a]">
             {p.sku}
           </span>
+          {p.quantity > 0 && (
+            <span className="text-xs bg-blue-50 border border-blue-200 text-blue-600 px-2 py-0.5 rounded-md">
+              {p.quantity} {p.quantity_unit}
+            </span>
+          )}
         </div>
 
         {/* Short description */}
-        {p.shortDescription && (
+        {p.short_description && (
           <p className="text-xs text-[#61756a] leading-relaxed line-clamp-2 mb-3">
-            {p.shortDescription}
+            {p.short_description}
           </p>
         )}
 
