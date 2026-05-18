@@ -130,7 +130,7 @@ export async function GET(
 
 
     return NextResponse.json({
-      data: products.map((p) => ({
+      data: products.map((p: any) => ({
         id: p.id,
         name: p.name,
         slug: p.slug,

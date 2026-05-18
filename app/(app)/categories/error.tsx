@@ -1,9 +1,15 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Breadcrumb } from '@/components/website-customization/shared/Breadcrumb';
-import ErrorBanner from '@/components/ErrorBanner';
+import PageError from '@/components/PageError';
+import { ErrorProps } from '@/lib/global.types';
 
-export default function CategoriesError({ error, reset }: { error: Error; reset: () => void }) {
+export default function CategoriesError({ error, reset }: ErrorProps) {
+    useEffect(() => {
+        console.error('[Categories] Page error:', error);
+    }, [error]);
+
     return (
         <section>
             <Breadcrumb section="Categories" />
@@ -13,8 +19,12 @@ export default function CategoriesError({ error, reset }: { error: Error; reset:
                     <p className="muted text-sm">Organize products with reusable category labels</p>
                 </div>
             </div>
-            <ErrorBanner error={error.message || 'Failed to load categories'} className="mb-4" />
-            <button type="button" className="btn primary" onClick={reset}>Try again</button>
+            <PageError 
+                error={error} 
+                reset={reset} 
+                heading="Failed to load categories" 
+                description="Something went wrong while fetching category data. This is usually temporary — try again or go back." 
+            />
         </section>
     );
 }
