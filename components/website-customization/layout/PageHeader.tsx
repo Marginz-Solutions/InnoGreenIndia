@@ -23,7 +23,7 @@ export const PageHeader = ({
                   >
                     <Menu size={18} />
                   </button>
-                  <span className="badge" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
+                  <span className="badge uppercase" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
                     Admin Panel
                   </span>
                 </div>
