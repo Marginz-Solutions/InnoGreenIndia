@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     };
 
     try {
-        const [data, total, activeCount, inactiveCount] = await Promise.all([
+        const [data, total] = await Promise.all([
             prisma.brand.findMany({
                 where,
                 include: {
@@ -58,9 +58,9 @@ export async function GET(request: NextRequest) {
                 skip: (page - 1) * limit,
                 take: limit,
             }),
-            prisma.brand.count({ where }),
-            prisma.brand.count({ where: { ...where, isActive: true } }),
-            prisma.brand.count({ where: { ...where, isActive: false } }),
+            prisma.brand.count(),
+            // prisma.brand.count({ where: { ...where, isActive: true } }),
+            // prisma.brand.count({ where: { ...where, isActive: false } }),
         ]);
     
         const totalPages = Math.ceil(total / limit);
@@ -77,12 +77,7 @@ export async function GET(request: NextRequest) {
                 total, page, limit, totalPages,
                 hasNextPage: page < totalPages,
                 hasPrevPage: page > 1,
-            },
-            stats: {
-                brandsTotal: total,
-                brandsActive: activeCount,
-                brandsInactive: inactiveCount,
-            },
+            }
         });
     }
     catch(error: any) {
