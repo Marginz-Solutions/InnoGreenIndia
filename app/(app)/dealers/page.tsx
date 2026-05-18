@@ -20,8 +20,8 @@ export default async function Page() {
 
   return (
     <DealersHubClient
-      enquiries={enquiriesData.data}
-      dealers={reviewedData.data}
+      enquiries={enquiriesData}
+      dealers={reviewedData}
     />
   );
 }
