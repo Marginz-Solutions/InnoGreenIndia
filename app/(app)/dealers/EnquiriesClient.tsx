@@ -168,11 +168,7 @@ export default function EnquiriesClient({
 
   const [meta, setMeta] = useState<Meta>(initialMeta);
   const [selected, setSelected] = useState<Enquiry | null>(null);
-  const [filters, setFilters] = useState<Filters>(() => ({
-    ...emptyFilters,
-    status: (localStorage.getItem("enquiries_status_filter") as Filters["status"]) || "all",
-    category: localStorage.getItem("enquiries_category_filter") || "all",
-  }));
+  const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [view, setView] = useState<ViewMode>("table");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -184,6 +180,16 @@ export default function EnquiriesClient({
   const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const districtTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  useEffect(() => {
+
+    // Reset state
+    setFilters(emptyFilters);
+
+    // Fetch fresh data
+    fetchData(emptyFilters, 1);
+  }, []);
+
+
   const activeFiltersCount = [
     filters.query,
     filters.category !== "all" ? filters.category : "",
@@ -192,66 +198,67 @@ export default function EnquiriesClient({
   ].filter(Boolean).length;
 
   // ── Fetch categories on mount ──────────────────────────────────────────────
- useEffect(() => {
-  const loadCategories = async () => {
-    try {
-      const res = await api.get("/categories");
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await api.get("/categories");
 
-      // Support both shapes: { data: Category[] } OR Category[]
-      const list: Category[] = Array.isArray(res)
-        ? res
-        : (res.data ?? []);
+        // Support both shapes: { data: Category[] } OR Category[]
+        const list: Category[] = Array.isArray(res)
+          ? res
+          : (res.data ?? []);
 
-      setCategories(
-        list.sort((a, b) => a.name.localeCompare(b.name))
-      );
-    } catch (err: any) {
-      console.error("Failed to load categories:", err.message);
+        setCategories(
+          list.sort((a, b) => a.name.localeCompare(b.name))
+        );
+      } catch (err: any) {
+        console.error("Failed to load categories:", err.message);
 
-      if (err.details) {
-        console.error("Details:", err.details);
+        if (err.details) {
+          console.error("Details:", err.details);
+        }
+      } finally {
+        setCategoriesLoading(false);
       }
-    } finally {
-      setCategoriesLoading(false);
-    }
-  };
+    };
 
-  loadCategories();
-}, []);
+    loadCategories();
+  }, []);
+
 
   // ── Fetch enquiries ────────────────────────────────────────────────────────
 
-const fetchData = useCallback(
-  async (currentFilters: Filters, currentPage: number) => {
-    setLoading(true);
+  const fetchData = useCallback(
+    async (currentFilters: Filters, currentPage: number) => {
+      setLoading(true);
 
-    try {
-      const res = await api.get("/dealers/requests", {
-        params: {
-          page: currentPage,
-          limit: 10,
-          ...(currentFilters.status !== "all" && { status: currentFilters.status }),
-          ...(currentFilters.query && { search: currentFilters.query }),
-          ...(currentFilters.district !== "all" && { district: currentFilters.district }),
-          ...(currentFilters.category !== "all" && { categoryId: currentFilters.category }),
-        },
-      });
-      const payload: any = res;
-      setEnquiries(payload.data);
-      setMeta(payload.meta);
+      try {
+        const res = await api.get("/dealers/requests", {
+          params: {
+            page: currentPage,
+            limit: 10,
+            ...(currentFilters.status !== "all" && { status: currentFilters.status }),
+            ...(currentFilters.query && { search: currentFilters.query }),
+            ...(currentFilters.district !== "all" && { district: currentFilters.district }),
+            ...(currentFilters.category !== "all" && { categoryId: currentFilters.category }),
+          },
+        });
+        const payload: any = res;
+        setEnquiries(payload.data);
+        setMeta(payload.meta);
 
-    } catch (error: any) {
-      console.error("Failed to fetch enquiries:", error.message);
+      } catch (error: any) {
+        console.error("Failed to fetch enquiries:", error.message);
 
-      if (error.details) {
-        console.error("Details:", error.details);
+        if (error.details) {
+          console.error("Details:", error.details);
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  },
-  [setEnquiries]
-);
+    },
+    [setEnquiries]
+  );
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
 
@@ -283,49 +290,51 @@ const fetchData = useCallback(
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
- const markAs = async (id: string, status: Enquiry["status"]) => {
-  // optimistic update
-  setEnquiries((prev) =>
-    prev.map((e) => (e.id === id ? { ...e, status } : e))
-  );
-
-  try {
-    const result = await api.patch("/api/v1/dealers/requests", {
-      id,
-      status,
-    });
-
-    // result is already response.data
-
-    if (status === "reviewed") {
-      if (result?.data) {
-        setFetchedDealers((prev) => [result.data, ...prev]);
-      }
-
-      setEnquiries((prev) => prev.filter((e) => e.id !== id));
-    }
-
-    if (status === "closed") {
-      setEnquiries((prev) => prev.filter((e) => e.id !== id));
-    }
-
-    setSelected(null);
-  } catch (error: any) {
-    console.error("Update failed:", error.message);
-
-    // rollback to previous state (assuming previous was "new")
+  const markAs = async (id: string, status: Enquiry["status"]) => {
+    // optimistic update
     setEnquiries((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, status: "new" } : e))
+      prev.map((e) => (e.id === id ? { ...e, status } : e))
     );
 
-    if (error.details) {
-      console.error("Details:", error.details);
+    try {
+      const result = await api.patch("/api/v1/dealers/requests", {
+        id,
+        status,
+      });
+
+      // result is already response.data
+
+      if (status === "reviewed") {
+        if (result?.data) {
+          setFetchedDealers((prev) => [result.data, ...prev]);
+        }
+
+        setEnquiries((prev) => prev.filter((e) => e.id !== id));
+      }
+
+      if (status === "closed") {
+        setEnquiries((prev) => prev.filter((e) => e.id !== id));
+      }
+
+      setSelected(null);
+    } catch (error: any) {
+      console.error("Update failed:", error.message);
+
+      // rollback to previous state (assuming previous was "new")
+      setEnquiries((prev) =>
+        prev.map((e) => (e.id === id ? { ...e, status: "new" } : e))
+      );
+
+      if (error.details) {
+        console.error("Details:", error.details);
+      }
     }
-  }
-};
+  };
+
+
 
   return (
-    <div className="min-h-screen p-6 font-sans">
+    <div className="p-6 font-sans">
 
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
@@ -398,7 +407,7 @@ const fetchData = useCallback(
           {/* ── Category filter — fetched from API ── */}
           <select
             value={filters.category}
-            onChange={(e) => {setFilter("category", e.target.value); localStorage.setItem("enquiries_category_filter", e.target.value);}}
+            onChange={(e) => { setFilter("category", e.target.value); }}
             disabled={categoriesLoading}
             className={`px-3 py-1.5 border border-[#d1dfd5] rounded-lg text-xs font-semibold
               bg-white text-[#61756a] focus:outline-none focus:border-[#2d5a27] transition-all cursor-pointer
@@ -424,9 +433,9 @@ const fetchData = useCallback(
 
           {/* Status pills */}
           <div className="flex items-center gap-1.5 border-l border-[#e2ece3] pl-2">
-            <FilterPill label="All" active={filters.status === "all"} onClick={() => {setFilter("status", "all"); localStorage.setItem("enquiries_status_filter", "all");}} />
-            <FilterPill label="New" active={filters.status === "new"} onClick={() => {setFilter("status", "new"); localStorage.setItem("enquiries_status_filter", "new");}} />
-            <FilterPill label="Closed" active={filters.status === "closed"} onClick={() => {setFilter("status", "closed"); localStorage.setItem("enquiries_status_filter", "closed");}} />
+            <FilterPill label="All" active={filters.status === "all"} onClick={() => { setFilter("status", "all");  }} />
+            <FilterPill label="New" active={filters.status === "new"} onClick={() => { setFilter("status", "new");  }} />
+            <FilterPill label="Closed" active={filters.status === "closed"} onClick={() => { setFilter("status", "closed");  }} />
           </div>
 
           {/* Clear */}

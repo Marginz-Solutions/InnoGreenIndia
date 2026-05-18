@@ -456,7 +456,7 @@ const fetchData = useCallback(
       router.replace(`${pathname}?${urlParams.toString()}`, { scroll: false });
 
       // axios call
-      const res = await api.get("/api/v1/smart-enquiries", {
+      const res = await api.get("/smart-enquiries", {
         params: paramsObj,
       });
 

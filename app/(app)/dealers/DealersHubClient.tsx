@@ -339,7 +339,7 @@ export default function DealersHubClient({
         }
     };
 }) {
-    console.log(enquiries, dealers);
+
     const [tab, setTab] = useState<Tab>("enquiries");
     const [fetchedEnquiries, setFetchedEnquiries] = useState<Enquiry[]>(enquiries.data);
     const [fetchedDealers, setFetchedDealers] = useState<Dealer[]>(dealers.data);
@@ -356,6 +356,9 @@ export default function DealersHubClient({
     useEffect(() => {
         getCategories()
     }, [])
+
+
+
 
     const getCategories = async () => {
         try {
@@ -416,8 +419,10 @@ export default function DealersHubClient({
         { key: "reviewed", label: "Reviewed Dealers", badge: fetchedDealers?.length },
     ];
 
+
+
     return (
-        <div className="min-h-screen font-sans relative">
+        <div className="font-sans relative">
             <Breadcrumb section="Dealers" />
 
             {/* Tab bar */}

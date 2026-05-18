@@ -13,10 +13,10 @@ export default async function Page() {
       cache: "no-store",
     }),
   ]);
-   const enquiriesData = await enquiriesRes.json();
-   const reviewedData = await reviewedRes.json();
-  console.log("Enquiries Response:", enquiriesData);
-  console.log("Reviewed Dealers Response:", reviewedData);
+  const enquiriesData = await enquiriesRes.json();
+  const reviewedData = await reviewedRes.json();
+
+
 
   return (
     <DealersHubClient

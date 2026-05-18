@@ -230,7 +230,7 @@ export default function ReviewedDealersClient({
   const [meta, setMeta] = useState<Meta>(initialMeta);
   const [selected, setSelected] = useState<Dealer | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Dealer | null>(null);
-  const [filters, setFilters] = useState<Filters>({ ...emptyFilters, volume: localStorage.getItem("reviewed_volume_filter") as Filters["volume"] || "all",category: localStorage.getItem("reviewed_category_filter") || "all" } );
+  const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [view, setView] = useState<ViewMode>("table");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -279,41 +279,54 @@ export default function ReviewedDealersClient({
     loadCategories();
   }, []);
 
+   useEffect(() => {
+  
+      // Reset state
+      setFilters(emptyFilters);
+  
+      // Fetch fresh data
+      fetchData(emptyFilters, 1);
+    }, []);
+  
+
+
+  
+
   // ── Fetch dealers ──────────────────────────────────────────────────────────
 
-const fetchData = useCallback(
-  async (currentFilters: Filters, currentPage: number) => {
-    setLoading(true);
+  const fetchData = useCallback(
+    async (currentFilters: Filters, currentPage: number) => {
+      setLoading(true);
 
-    try {
-      const res = await api.get("/dealers/reviewed", {
-        params: {
-          page: currentPage,
-          limit: 10,
-          ...(currentFilters.query && { search: currentFilters.query }),
-          ...(currentFilters.district !== "all" && { district: currentFilters.district }),
-          ...(currentFilters.category !== "all" && { categoryId: currentFilters.category }),
-          ...(currentFilters.volume !== "all" && { volume: currentFilters.volume }),
-        },
-      });
+      try {
+        const res = await api.get("/dealers/reviewed", {
+          params: {
+            page: currentPage,
+            limit: 10,
+            ...(currentFilters.query && { search: currentFilters.query }),
+            ...(currentFilters.district !== "all" && { district: currentFilters.district }),
+            ...(currentFilters.category !== "all" && { categoryId: currentFilters.category }),
+            ...(currentFilters.volume !== "all" && { volume: currentFilters.volume }),
+          },
+        });
 
-      // res is already response.data
-      const payload: any = res;
-      setDealers(payload.data);
-      setFetchedDealers(payload.data);
-      setMeta(payload.meta);
-    } catch (error: any) {
-      console.error("Failed to fetch reviewed dealers:", error.message);
+        // res is already response.data
+        const payload: any = res;
+        setDealers(payload.data);
+        setFetchedDealers(payload.data);
+        setMeta(payload.meta);
+      } catch (error: any) {
+        console.error("Failed to fetch reviewed dealers:", error.message);
 
-      if (error.details) {
-        console.error("Details:", error.details);
+        if (error.details) {
+          console.error("Details:", error.details);
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  },
-  [setFetchedDealers]
-);
+    },
+    [setFetchedDealers]
+  );
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
 
@@ -350,38 +363,38 @@ const fetchData = useCallback(
     setDeleteTarget(dealer);
   };
 
- const confirmDelete = async () => {
-  if (!deleteTarget) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
 
-  setDeletingId(deleteTarget.id);
+    setDeletingId(deleteTarget.id);
 
-  try {
-    await api.delete("/dealers/reviewed", {
-      data: { id: deleteTarget.id }, // 👈 important for DELETE in axios
-    });
+    try {
+      await api.delete("/dealers/reviewed", {
+        data: { id: deleteTarget.id }, // 👈 important for DELETE in axios
+      });
 
-    // update UI after successful delete
-    setDealers((prev) => prev.filter((d) => d.id !== deleteTarget.id));
-    setFetchedDealers((prev) => prev.filter((d) => d.id !== deleteTarget.id));
-    setMeta((prev) => ({ ...prev, total: prev.total - 1 }));
+      // update UI after successful delete
+      setDealers((prev) => prev.filter((d) => d.id !== deleteTarget.id));
+      setFetchedDealers((prev) => prev.filter((d) => d.id !== deleteTarget.id));
+      setMeta((prev) => ({ ...prev, total: prev.total - 1 }));
 
-    setDeleteTarget(null);
+      setDeleteTarget(null);
 
-    startTransition(() => router.refresh());
-  } catch (error: any) {
-    console.error("Delete failed:", error.message);
+      startTransition(() => router.refresh());
+    } catch (error: any) {
+      console.error("Delete failed:", error.message);
 
-    if (error.details) {
-      console.error("Details:", error.details);
+      if (error.details) {
+        console.error("Details:", error.details);
+      }
+    } finally {
+      setDeletingId(null);
     }
-  } finally {
-    setDeletingId(null);
-  }
-};
+  };
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen p-6 font-sans overflow-y-scroll">
+    <div className="p-6 font-sans overflow-y-scroll">
 
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
@@ -450,7 +463,7 @@ const fetchData = useCallback(
           {/* ── Category filter — fetched from API ── */}
           <select
             value={filters.category}
-            onChange={(e) => {setFilter("category", e.target.value); localStorage.setItem("reviewed_category_filter", e.target.value);}}
+            onChange={(e) => { setFilter("category", e.target.value); }}
             disabled={categoriesLoading}
             className={`px-3 py-1.5 border border-[#d1dfd5] rounded-lg text-xs font-semibold
               bg-white text-[#61756a] focus:outline-none focus:border-[#2d5a27] transition-all cursor-pointer
@@ -476,9 +489,9 @@ const fetchData = useCallback(
 
           {/* Volume pills */}
           <div className="flex items-center gap-1.5 border-l border-[#e2ece3] pl-2">
-            <FilterPill label="All" active={filters.volume === "all"} onClick={() => { setFilter("volume", "all"); localStorage.setItem("reviewed_volume_filter", "all"); }} />
-            <FilterPill label="Vol. Provided" active={filters.volume === "true"} onClick={() => { setFilter("volume", "true"); localStorage.setItem("reviewed_volume_filter", "true"); }} />
-            <FilterPill label="No Volume" active={filters.volume === "false"} onClick={() => { setFilter("volume", "false"); localStorage.setItem("reviewed_volume_filter", "false"); }} />
+            <FilterPill label="All" active={filters.volume === "all"} onClick={() => { setFilter("volume", "all");  }} />
+            <FilterPill label="Vol. Provided" active={filters.volume === "true"} onClick={() => { setFilter("volume", "true");  }} />
+            <FilterPill label="No Volume" active={filters.volume === "false"} onClick={() => { setFilter("volume", "false");  }} />
           </div>
 
           {/* Clear */}
