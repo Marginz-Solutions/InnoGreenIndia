@@ -66,7 +66,7 @@ const where: Prisma.DealerWhereInput = {
       prisma.dealer.count({ where })
     ])
 
-    console.log("Fetched Dealers:", data);
+    // console.log("Fetched Dealers:", data);
    
     return NextResponse.json({
       data, meta: {

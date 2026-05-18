@@ -12,17 +12,6 @@ export default function BrandsLoading() {
                 <Skeleton className="h-10 w-32 rounded-lg" />
             </div>
 
-            {/* KPIs */}
-            <div className="grid grid-cols-3 gap-3 mb-5">
-                {[1, 2, 3].map((i) => (
-                    <div key={i} className="card p-4 space-y-2">
-                        <Skeleton className="h-4 w-20" />
-                        <Skeleton className="h-8 w-16 rounded-md" />
-                        <Skeleton className="h-3 w-24" />
-                    </div>
-                ))}
-            </div>
-
             {/* Filters */}
             <div className="bg-white border border-[#e2ece3] rounded-2xl p-4 space-y-3 mb-5">
                 <div className="flex items-center gap-3">
