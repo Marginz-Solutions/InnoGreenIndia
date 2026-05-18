@@ -9,11 +9,6 @@ import { generateSlug } from '@/lib/utils';
  * @description Get all categories
  */
 export async function GET() {
-  const { user } = await getAuthContext();
-
-  if(!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   try {
     const categories = await prisma.category.findMany({
