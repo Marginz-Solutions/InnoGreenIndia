@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
             return tx.brand.findUniqueOrThrow({
                 where: { id: newBrand.id },
                 include: {
-                    contact: {
+                    contacts: {
                         select: {
                             id: true, name: true, email: true, phoneNo: true, whatsapp: true,
                             addressLine1: true, addressLine2: true, city: true, state: true, pincode: true,

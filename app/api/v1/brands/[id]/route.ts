@@ -134,7 +134,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             return tx.brand.findUniqueOrThrow({
                 where: { id },
                 include: {
-                    contact: {
+                    contacts: {
                         select: {
                             id: true, name: true, email: true, phoneNo: true, whatsapp: true,
                             addressLine1: true, addressLine2: true, city: true, state: true, pincode: true,

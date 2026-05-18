@@ -228,62 +228,47 @@ export default function ProductsClient({
     page,
   ]);
 
-  const handleExcelUpload =
-    async (
-      e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-      try {
-        const file =
-          e.target.files?.[0];
+  const handleExcelUpload = async (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  try {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-        if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
 
-        const formData =
-          new FormData();
-
-        formData.append(
-          "file",
-          file
-        );
-
-        const result = await api.post(
-          "/products/import",
-          formData,
-          {
-            headers: {
-              "Content-Type":
-                "multipart/form-data",
-            },
-          }
-        );
-
-        toast.success(
-          `${result.data.created} products imported`
-        );
-
-        if (
-          result.data.failed > 0
-        ) {
-          toast.error(
-            `${result.data.failed} products failed`
-          );
-
-          console.log(
-            result.data.errors
-          );
-        }
-
-        await Promise.all([
-          fetchProducts(),
-          fetchCategories(),
-        ]);
-      } catch (err: any) {
-        toast.error(
-          err.message ||
-          "Import failed"
-        );
+    const result = await api.post(
+      "/products/import",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       }
-    };
+    );
+
+    // Safely access the response
+    const created = result.data?.created ?? 0;
+    const failed = result.data?.failed ?? 0;
+
+    if (created > 0) {
+      toast.success(`${created} products imported`);
+    }
+
+    if (failed > 0) {
+      toast.error(`${failed} products failed`);
+      console.log(result.data.errors);
+    }
+
+    await Promise.all([
+      fetchProducts(),
+      fetchCategories(),
+    ]);
+  } catch (err: any) {
+    toast.error(err.message || "Import failed");
+  }
+};
 
   const handleDelete = async (
     id: string
