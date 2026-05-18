@@ -5,7 +5,7 @@ import { getAuthContext } from '@/lib/auth';
 import { generateSlug } from '@/lib/utils';
 
 /**
- * @method GET /api/v1/admin/categories
+ * @method GET /api/v1/categories
  * @description Get all categories
  */
 export async function GET() {
@@ -29,7 +29,7 @@ export async function GET() {
 }
 
 /**
- * @method POST /api/v1/admin/categories
+ * @method POST /api/v1/categories
  * @description Create a new category with the given name
  * @requires { name: string } - Name of the category to be created
  */

@@ -7,7 +7,7 @@ import { createBrandSchema } from "./_validation";
 import { rollbackUploads, uploadImage } from "./_upload";
 
 /**
- * @method GET /api/v1/admin/brands
+ * @method GET /api/v1/brands
  * @description Retrieve all brands based on the query, filter and paginations
  * @param {Object} query - Query parameters
  * @param {string} [query.search] - Search term to filter brands
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * @method POST /api/v1/admin/brands
+ * @method POST /api/v1/brands
  * @description Create a new brand with the given details
  * @param {Object} body - Request body parameters
  * @param {string} body.name - Name of the brand to be created

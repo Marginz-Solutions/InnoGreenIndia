@@ -8,11 +8,82 @@ import {
   MessageSquare, Monitor, Smartphone, ArrowRight, Archive, Flame,
   Link2, AlertCircle,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+// ── Types ──────────────────────────────────────────────────────────────────────
+
+type PulseTypeValue =
+  | 'trending_product' | 'dealer_activity' | 'enquiry_insight'
+  | 'product_update'   | 'category_highlight' | 'seasonal_insight'
+  | 'announcement'     | 'website_highlight';
+
+type PulseStatus = 'draft' | 'published' | 'scheduled' | 'archived' | 'expired';
+
+type ViewMode = 'grid' | 'list';
+
+type SortMode = 'latest' | 'trending' | 'priority';
+
+type VisibilityFilter = 'all' | 'visible' | 'hidden';
+
+interface PulseTypeConfig {
+  value: PulseTypeValue;
+  label: string;
+  icon: LucideIcon;
+  color: string;
+}
+
+interface StatusConfig {
+  label: string;
+  dot: string;
+  pill: string;
+}
+
+interface Pulse {
+  id: string;
+  title: string;
+  description: string;
+  type: PulseTypeValue;
+  relatedProduct: string;
+  relatedCategory: string;
+  relatedBrand: string;
+  dealerTag: string;
+  enquiryHighlight: string;
+  ctaLabel: string;
+  ctaLink: string;
+  priority: number;
+  tags: string[];
+  status: PulseStatus;
+  visibility: boolean;
+  trending: boolean;
+  featured: boolean;
+  pinned: boolean;
+  scheduledDate: string;
+  expiryDate: string;
+  createdAt: string;
+}
+
+type PulseToggleField = 'visibility' | 'trending' | 'featured' | 'pinned';
+
+interface Filters {
+  query: string;
+  type: PulseTypeValue | 'all';
+  status: PulseStatus | 'all';
+  visibility: VisibilityFilter;
+  sort: SortMode;
+}
+
+interface KpiItem {
+  label: string;
+  value: number;
+  sub: string;
+  icon: LucideIcon;
+  color: string;
+}
 
 // ── Pulse Type Config ──────────────────────────────────────────────────────────
 //  Color palette: green brand family + neutral gray. No rainbow.
 
-const PULSE_TYPE_LIST = [
+const PULSE_TYPE_LIST: PulseTypeConfig[] = [
   { value: 'trending_product',   label: 'Trending Product',    icon: TrendingUp,    color: 'text-[#1f7a36] bg-[#edf8ee] border-[#b6debb]'    },
   { value: 'dealer_activity',    label: 'Dealer Activity',     icon: ShoppingBag,   color: 'text-[#374151] bg-gray-50 border-gray-200'         },
   { value: 'enquiry_insight',    label: 'Enquiry Insight',     icon: MessageSquare, color: 'text-[#374151] bg-gray-50 border-gray-200'         },
@@ -23,10 +94,10 @@ const PULSE_TYPE_LIST = [
   { value: 'website_highlight',  label: 'Website Highlight',   icon: Globe,         color: 'text-[#4b5563] bg-gray-50 border-gray-200'         },
 ];
 
-const TYPE_MAP = Object.fromEntries(PULSE_TYPE_LIST.map(t => [t.value, t]));
+const TYPE_MAP: Record<string, PulseTypeConfig> = Object.fromEntries(PULSE_TYPE_LIST.map(t => [t.value, t]));
 
 // Accent bar & icon tints — green family for product/category, neutral for operational types
-const TYPE_ACCENTS = {
+const TYPE_ACCENTS: Record<PulseTypeValue, string> = {
   trending_product:   '#1f7a36',
   dealer_activity:    '#1f7a36',
   enquiry_insight:    '#1f7a36',
@@ -38,7 +109,7 @@ const TYPE_ACCENTS = {
 };
 
 // Status — green for live, slate for scheduled, muted gray for inactive, amber for expired
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<PulseStatus, StatusConfig> = {
   draft:     { label: 'Draft',     dot: 'bg-gray-400',    pill: 'text-gray-500 bg-gray-50 border-gray-200'          },
   published: { label: 'Published', dot: 'bg-[#1f7a36]',   pill: 'text-[#1f7a36] bg-[#edf8ee] border-[#b6debb]'     },
   scheduled: { label: 'Scheduled', dot: 'bg-slate-500',   pill: 'text-slate-600 bg-slate-50 border-slate-200'       },
@@ -48,7 +119,7 @@ const STATUS_CONFIG = {
 
 // ── Mock / Seed Data ───────────────────────────────────────────────────────────
 
-const MOCK_PULSES = [
+const MOCK_PULSES: Pulse[] = [
   {
     id: '1', title: "Paddy Crop Season — Top Products Now Available",
     description: "Discover our curated selection of high-yield paddy seeds and fertilisers for the upcoming season.",
@@ -105,7 +176,7 @@ const MOCK_PULSES = [
   },
 ];
 
-const EMPTY_PULSE = {
+const EMPTY_PULSE: Pulse = {
   id: '', title: '', description: '', type: 'trending_product',
   relatedProduct: '', relatedCategory: '', relatedBrand: '',
   dealerTag: '', enquiryHighlight: '', ctaLabel: '', ctaLink: '',
@@ -116,7 +187,7 @@ const EMPTY_PULSE = {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function timeAgo(dateStr) {
+function timeAgo(dateStr: string) {
   if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr).getTime();
   const m = Math.floor(diff / 60000);
@@ -128,14 +199,14 @@ function timeAgo(dateStr) {
   return d < 30 ? `${d}d ago` : `${Math.floor(d / 30)}mo ago`;
 }
 
-function fmtDate(dateStr) {
+function fmtDate(dateStr: string) {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 // ── Shared UI Atoms ────────────────────────────────────────────────────────────
 
-function PulseStatusBadge({ status }) {
+function PulseStatusBadge({ status }: { status: PulseStatus }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.draft;
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${cfg.pill}`}>
@@ -145,7 +216,7 @@ function PulseStatusBadge({ status }) {
   );
 }
 
-function PulseTypeBadge({ type }) {
+function PulseTypeBadge({ type }: { type: PulseTypeValue }) {
   const cfg = TYPE_MAP[type] ?? PULSE_TYPE_LIST[0];
   const Icon = cfg.icon;
   return (
@@ -156,7 +227,12 @@ function PulseTypeBadge({ type }) {
   );
 }
 
-function FilterPill({ label, icon: Icon, active, onClick }) {
+function FilterPill({ label, icon: Icon, active, onClick }: {
+  label: string;
+  icon?: LucideIcon;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}
@@ -172,7 +248,13 @@ function FilterPill({ label, icon: Icon, active, onClick }) {
   );
 }
 
-function OverviewCard({ label, value, sub, color, icon: Icon }) {
+function OverviewCard({ label, value, sub, color, icon: Icon }: {
+  label: string;
+  value: number;
+  sub?: string;
+  color?: string;
+  icon?: LucideIcon;
+}) {
   return (
     <div className="bg-white border border-[#e2ece3] rounded-2xl p-4 flex flex-col gap-2">
       <div className="flex items-center justify-between">
@@ -220,7 +302,11 @@ function SkeletonCard() {
 
 // ── Toggle ─────────────────────────────────────────────────────────────────────
 
-function Toggle({ value, onChange, label }) {
+function Toggle({ value, onChange, label }: {
+  value: boolean;
+  onChange: (val: boolean) => void;
+  label?: string;
+}) {
   return (
     <button
       type="button"
@@ -239,10 +325,10 @@ function Toggle({ value, onChange, label }) {
 
 // ── Tags Input ─────────────────────────────────────────────────────────────────
 
-function TagsInput({ tags, onChange }) {
+function TagsInput({ tags, onChange }: { tags: string[]; onChange: (tags: string[]) => void }) {
   const [input, setInput] = useState('');
 
-  const handleKey = (e) => {
+  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ((e.key === 'Enter' || e.key === ',') && input.trim()) {
       e.preventDefault();
       const tag = input.trim().replace(/,/g, '');
@@ -285,7 +371,12 @@ function TagsInput({ tags, onChange }) {
 
 // ── Pulse Card (Grid View) ─────────────────────────────────────────────────────
 
-function PulseCard({ pulse, onEdit, onDelete, onToggle }) {
+function PulseCard({ pulse, onEdit, onDelete, onToggle }: {
+  pulse: Pulse;
+  onEdit: (pulse: Pulse) => void;
+  onDelete: (id: string) => void;
+  onToggle: (id: string, field: PulseToggleField) => void;
+}) {
   const typeCfg = TYPE_MAP[pulse.type] ?? PULSE_TYPE_LIST[0];
   const TypeIcon = typeCfg.icon;
   const accent = TYPE_ACCENTS[pulse.type] ?? '#1f7a36';
@@ -446,7 +537,12 @@ function PulseCard({ pulse, onEdit, onDelete, onToggle }) {
 
 // ── Pulse List Row ─────────────────────────────────────────────────────────────
 
-function PulseListRow({ pulse, onEdit, onDelete, onToggle }) {
+function PulseListRow({ pulse, onEdit, onDelete, onToggle }: {
+  pulse: Pulse;
+  onEdit: (pulse: Pulse) => void;
+  onDelete: (id: string) => void;
+  onToggle: (id: string, field: PulseToggleField) => void;
+}) {
   const typeCfg = TYPE_MAP[pulse.type] ?? PULSE_TYPE_LIST[0];
   const TypeIcon = typeCfg.icon;
   const accent = TYPE_ACCENTS[pulse.type] ?? '#1f7a36';
@@ -513,8 +609,8 @@ function PulseListRow({ pulse, onEdit, onDelete, onToggle }) {
 
 // ── Website Preview (inside modal) ─────────────────────────────────────────────
 
-function WebsitePreviewPanel({ form }) {
-  const [previewMode, setPreviewMode] = useState('desktop');
+function WebsitePreviewPanel({ form }: { form: Pulse }) {
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
   const accent = TYPE_ACCENTS[form.type] ?? '#1f7a36';
   const TypeIcon = (TYPE_MAP[form.type] ?? PULSE_TYPE_LIST[0]).icon;
 
@@ -522,10 +618,10 @@ function WebsitePreviewPanel({ form }) {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <div className="flex border border-[#cfe0d2] rounded-xl overflow-hidden">
-          {[
-            { id: 'desktop', label: 'Desktop', icon: Monitor },
-            { id: 'mobile',  label: 'Mobile',  icon: Smartphone },
-          ].map(({ id, label, icon: Icon }) => (
+          {([
+            { id: 'desktop' as const, label: 'Desktop', icon: Monitor },
+            { id: 'mobile'  as const, label: 'Mobile',  icon: Smartphone },
+          ]).map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"
@@ -599,9 +695,14 @@ function WebsitePreviewPanel({ form }) {
 
 // ── Pulse Modal ────────────────────────────────────────────────────────────────
 
-function PulseModal({ open, onClose, onSave, editPulse }) {
-  const [form, setForm] = useState(EMPTY_PULSE);
-  const [tab, setTab]   = useState('content');
+function PulseModal({ open, onClose, onSave, editPulse }: {
+  open: boolean;
+  onClose: () => void;
+  onSave: (form: Pulse) => Promise<void>;
+  editPulse: Pulse | null;
+}) {
+  const [form, setForm] = useState<Pulse>(EMPTY_PULSE);
+  const [tab, setTab]   = useState<'content' | 'publishing' | 'preview'>('content');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -611,7 +712,7 @@ function PulseModal({ open, onClose, onSave, editPulse }) {
     }
   }, [open, editPulse]);
 
-  const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
+  const set = <K extends keyof Pulse>(key: K, val: Pulse[K]) => setForm(f => ({ ...f, [key]: val }));
 
   const handleSave = async () => {
     if (!form.title.trim()) return;
@@ -673,9 +774,9 @@ function PulseModal({ open, onClose, onSave, editPulse }) {
         {/* ── Tabs ── */}
         <div className="flex border-b border-[#e2ece3] px-6">
           {[
-            { id: 'content',    label: 'Content'    },
-            { id: 'publishing', label: 'Publishing' },
-            { id: 'preview',    label: 'Preview'    },
+            { id: 'content'    as const, label: 'Content'    },
+            { id: 'publishing' as const, label: 'Publishing' },
+            { id: 'preview'    as const, label: 'Preview'    },
           ].map(t => (
             <button
               key={t.id}
@@ -723,7 +824,7 @@ function PulseModal({ open, onClose, onSave, editPulse }) {
                 <label className={labelCls}>Pulse Type</label>
                 <select
                   value={form.type}
-                  onChange={e => set('type', e.target.value)}
+                  onChange={e => set('type', e.target.value as PulseTypeValue)}
                   className={inputCls}
                 >
                   {PULSE_TYPE_LIST.map(t => (
@@ -822,7 +923,7 @@ function PulseModal({ open, onClose, onSave, editPulse }) {
                 <label className={labelCls}>Publish Status</label>
                 <select
                   value={form.status}
-                  onChange={e => set('status', e.target.value)}
+                  onChange={e => set('status', e.target.value as PulseStatus)}
                   className={inputCls}
                 >
                   <option value="draft">Draft — not visible to anyone yet</option>
@@ -858,18 +959,18 @@ function PulseModal({ open, onClose, onSave, editPulse }) {
               <div className="bg-[#fafdfb] rounded-2xl border border-[#e2ece3] p-4 space-y-3">
                 <h4 className="text-xs font-extrabold text-[#102018] uppercase tracking-wide">Visibility &amp; Behaviour</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    { key: 'visibility', label: 'Website Visible',  sub: 'Show on public website'          },
-                    { key: 'trending',   label: 'Trending',          sub: 'Mark as trending item'           },
-                    { key: 'featured',   label: 'Featured',          sub: 'Highlight in featured section'   },
-                    { key: 'pinned',     label: 'Pin to Top',        sub: 'Always show at top of feed'      },
-                  ].map(({ key, label, sub }) => (
+                  {([
+                    { key: 'visibility' as const, label: 'Website Visible',  sub: 'Show on public website'          },
+                    { key: 'trending'   as const, label: 'Trending',          sub: 'Mark as trending item'           },
+                    { key: 'featured'   as const, label: 'Featured',          sub: 'Highlight in featured section'   },
+                    { key: 'pinned'     as const, label: 'Pin to Top',        sub: 'Always show at top of feed'      },
+                  ] satisfies { key: keyof Pulse; label: string; sub: string }[]).map(({ key, label, sub }) => (
                     <div key={key} className="flex items-center justify-between p-3 bg-white rounded-xl border border-[#e2ece3]">
                       <div>
                         <p className="text-xs font-semibold text-[#102018]">{label}</p>
                         <p className="text-[11px] text-[#9bb4a1]">{sub}</p>
                       </div>
-                      <Toggle value={form[key]} onChange={v => set(key, v)} />
+                      <Toggle value={form[key] as boolean} onChange={v => set(key, v as Pulse[typeof key])} />
                     </div>
                   ))}
                 </div>
@@ -916,17 +1017,17 @@ function PulseModal({ open, onClose, onSave, editPulse }) {
 // ── Main Page Component ────────────────────────────────────────────────────────
 
 export default function TodaysPulseClient() {
-  const [pulses,    setPulses]    = useState(MOCK_PULSES);
+  const [pulses,    setPulses]    = useState<Pulse[]>(MOCK_PULSES);
   const [loading,   setLoading]   = useState(false);
-  const [viewMode,  setViewMode]  = useState('grid');
+  const [viewMode,  setViewMode]  = useState<ViewMode>('grid');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editPulse, setEditPulse] = useState(null);
+  const [editPulse, setEditPulse] = useState<Pulse | null>(null);
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     query: '', type: 'all', status: 'all', visibility: 'all', sort: 'latest',
   });
 
-  const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
+  const setFilter = <K extends keyof Filters>(key: K, val: Filters[K]) => setFilters(f => ({ ...f, [key]: val }));
 
   const activeFiltersCount = [
     filters.type !== 'all',
@@ -968,7 +1069,7 @@ export default function TodaysPulseClient() {
   }, [pulses, filters]);
 
   // KPI value colors: green for primary metric, slate for scheduled, red for trending, gray for others
-  const kpis = [
+  const kpis: KpiItem[] = [
     { label: 'Active Pulses',   value: pulses.filter(p => p.status === 'published' && p.visibility).length, sub: 'live on website',   icon: Zap,      color: 'text-[#1f7a36]'  },
     { label: 'Scheduled',       value: pulses.filter(p => p.status === 'scheduled').length,                  sub: 'pending publish',   icon: Calendar, color: 'text-slate-600'   },
     { label: 'Trending Items',  value: pulses.filter(p => p.trending && p.status === 'published').length,    sub: 'highlighted',       icon: Flame,    color: 'text-red-500'     },
@@ -977,14 +1078,14 @@ export default function TodaysPulseClient() {
   ];
 
   const openAdd  = ()  => { setEditPulse(null); setModalOpen(true); };
-  const openEdit = (p) => { setEditPulse(p);    setModalOpen(true); };
+  const openEdit = (p: Pulse) => { setEditPulse(p);    setModalOpen(true); };
 
-  const handleDelete = (id) => setPulses(prev => prev.filter(p => p.id !== id));
+  const handleDelete = (id: string) => setPulses(prev => prev.filter(p => p.id !== id));
 
-  const handleToggle = (id, field) =>
+  const handleToggle = (id: string, field: PulseToggleField) =>
     setPulses(prev => prev.map(p => p.id === id ? { ...p, [field]: !p[field] } : p));
 
-  const handleSave = async (form) => {
+  const handleSave = async (form: Pulse) => {
     if (editPulse) {
       setPulses(prev => prev.map(p => p.id === form.id ? { ...form } : p));
     } else {
@@ -1056,7 +1157,7 @@ export default function TodaysPulseClient() {
 
           <select
             value={filters.sort}
-            onChange={e => setFilter('sort', e.target.value)}
+            onChange={e => setFilter('sort', e.target.value as SortMode)}
             className="px-3 py-2.5 border border-[#cfe0d2] rounded-xl text-xs font-semibold bg-white text-[#61756a] focus:outline-none focus:border-[#1f7a36] transition-all"
           >
             <option value="latest">Latest First</option>
@@ -1085,7 +1186,7 @@ export default function TodaysPulseClient() {
 
           <select
             value={filters.type}
-            onChange={e => setFilter('type', e.target.value)}
+            onChange={e => setFilter('type', e.target.value as PulseTypeValue | 'all')}
             className="px-3 py-1.5 border border-[#d1dfd5] rounded-lg text-xs font-semibold bg-white text-[#61756a] focus:outline-none focus:border-[#1f7a36] transition-all"
           >
             <option value="all">All Types</option>
@@ -1095,10 +1196,10 @@ export default function TodaysPulseClient() {
           </select>
 
           <div className="flex items-center gap-1.5 border-l border-[#e2ece3] pl-2 flex-wrap">
-            {['all', 'published', 'scheduled', 'draft', 'archived', 'expired'].map(s => (
+            {(['all', 'published', 'scheduled', 'draft', 'archived', 'expired'] as const).map(s => (
               <FilterPill
                 key={s}
-                label={s === 'all' ? 'All Status' : (STATUS_CONFIG[s]?.label ?? s)}
+                label={s === 'all' ? 'All Status' : (STATUS_CONFIG[s as PulseStatus]?.label ?? s)}
                 active={filters.status === s}
                 onClick={() => setFilter('status', s)}
               />
