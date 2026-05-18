@@ -30,7 +30,7 @@ export interface Brand {
     isActive: boolean;
     tags: string[];
     contactId?: string | null;
-    contact?: BrandContact | null;
+    contacts?: BrandContact | null;
     categories: { id: string; name: string; slug: string }[];
     createdAt: string;
     updatedAt: string;
