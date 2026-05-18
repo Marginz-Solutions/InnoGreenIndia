@@ -22,9 +22,9 @@ export default function DashboardPage() {
               <span className="tag">IGIM branded</span>
             </div>
             <div className="quick-actions">
-              <Link className="btn primary" href="/sheets">Open planning sheets</Link>
+              {/* <Link className="btn primary" href="/sheets">Open planning sheets</Link>
               <Link className="btn" href="/maps/cluster">Open clustered route map</Link>
-              <Link className="btn" href="/maps/field-visit">Open field route map</Link>
+              <Link className="btn" href="/maps/field-visit">Open field route map</Link> */}
             </div>
           </div>
           <div className="panel">
@@ -125,21 +125,21 @@ export default function DashboardPage() {
                 <h3>Planning Sheets</h3>
                 <p className="muted">Open all sheet pages converted from the workbook for search and export.</p>
                 <div style={{ marginTop: '14px' }}>
-                  <Link className="btn primary" href="/sheets">Open sheet center</Link>
+                  {/* <Link className="btn primary" href="/sheets">Open sheet center</Link> */}
                 </div>
               </div>
               <div className="sheet-card">
                 <h3>Cluster Route Map</h3>
                 <p className="muted">Branded route page for cluster-based field movement and beat planning.</p>
                 <div style={{ marginTop: '14px' }}>
-                  <Link className="btn primary" href="/maps/cluster">Open cluster map</Link>
+                  {/* <Link className="btn primary" href="/maps/cluster">Open cluster map</Link> */}
                 </div>
               </div>
               <div className="sheet-card">
                 <h3>Field Visit Route Map</h3>
                 <p className="muted">Practical visit-order route page for field staff execution planning.</p>
                 <div style={{ marginTop: '14px' }}>
-                  <Link className="btn primary" href="/maps/field-visit">Open field route map</Link>
+                  {/* <Link className="btn primary" href="/maps/field-visit">Open field route map</Link> */}
                 </div>
               </div>
             </div>
