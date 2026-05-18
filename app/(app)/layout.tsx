@@ -10,7 +10,6 @@ import { Sidebar } from '@/components/website-customization/layout/Sidebar';
 import { SidebarSection } from '@/components/website-customization/types/common.types';
 import { Toaster } from "sonner";
 import { Topbar } from '@/components/topbar';
-import { Footer } from '@/components/footer';
 
 const SECTION_PATHS: Record<SidebarSection, string> = {
   dashboard: '/dashboard',
@@ -73,14 +72,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="card" style={{ minHeight: 500 }}>
+            <section className="card" style={{ minHeight: 500 }}>
               {children}
-            </div>
+            </section>
           </div>
         </div>
       </div>
       <Toaster richColors />
-      <Footer/>
     </AuthGuard>
   );
 }
