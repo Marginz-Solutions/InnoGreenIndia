@@ -5,14 +5,14 @@ export type status = "new" | "reviewed" | "closed";
 
 export type Dealer = {
   id: number;
-  firm_name: string;
-  gst_number: string;
-  mobile_no: string;
+  firmName: string;
+  gstNumber: string;
+  mobileNo: string;
   district: string;
-  category_interest: string;
-  monthly_volume: string | null;
-  submitted_at: string;
-  reviewed_at: string;
+  categoryInterest: string;
+  monthlyVolume: string | null;
+  submittedAt: string;
+  reviewedAt: string;
   categories: {
     id: number;
     name: string;
@@ -22,16 +22,16 @@ export type Dealer = {
 
 export type Enquiry = {
   id: number;
-  firm_name: string;
-  gst_number: string;
-  mobile_no: string;
+  firmName: string;
+  gstNumber: string;
+  mobileNo: string;
   district: string;
-  category_interest: string;
-  monthly_volume?: string;
+  categoryInterest: string;
+  monthlyVolume?: string;
   categories: {
     id: number;
     name: string;
   };
-  submitted_at: string;
+  submittedAt: string;
   status: status;
 };

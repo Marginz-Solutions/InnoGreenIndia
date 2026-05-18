@@ -43,31 +43,19 @@ export type Brand = {
     updated_at: string;
 };
 
-function ErrorCard({ message }: { message: string }) {
-    return (
-        <div className="flex min-h-screen items-center justify-center bg-[#f5f5f0] p-6">
-            <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-5 text-center max-w-sm w-full">
-                <p className="text-sm font-semibold text-red-600 mb-1">Failed to load dashboard</p>
-                <p className="text-xs text-red-400">{message}</p>
-            </div>
-        </div>
-    );
-}
+
 
 export default async function DashboardPage() {
     const supabase = await createClient();
 
-    try {
+  
         const [productsRes, categoriesRes, brandsRes] = await Promise.all([
-            supabase.from("products").select("*").order("createdAt", { ascending: false }),
+            supabase.from("products").select("*").order("created_at", { ascending: false }),
             supabase.from("categories").select("*").order("name"),
             supabase.from("brands").select("*").order("name"),
         ]);
 
-        if (productsRes.error) return <ErrorCard message={productsRes.error.message} />;
-        if (categoriesRes.error) return <ErrorCard message={categoriesRes.error.message} />;
-        if (brandsRes.error) return <ErrorCard message={brandsRes.error.message} />;
-
+       
         // Axios calls
         const [enquiriesRes, reviewedRes] = await Promise.all([
             api.get('/dealers/requests'),
@@ -83,9 +71,5 @@ export default async function DashboardPage() {
                 dealers={reviewedRes.data ?? []}
             />
         );
-
-    } catch (error: any) {
-        return <ErrorCard message={error.message || "Something went wrong"} />;
-    }
 }
  

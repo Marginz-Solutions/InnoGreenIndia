@@ -1,125 +1,120 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const supabase = await createClient();
 
-  const last24Hours = new Date(
-    Date.now() - 24 * 60 * 60 * 1000
-  ).toISOString();
+  try {
 
-  const { data, error } = await supabase
-    .from("dealers")
-    .select("*, categories:category_interest (id, name)")
-    .or(`status.eq.new,and(status.eq.closed,submitted_at.gte.${last24Hours})`)
-    .order("submitted_at", { ascending: false });
-
-  if (error) {
+    const data = await prisma.dealer.findMany({
+      where: {
+        OR: [
+          { status: "new" },
+          {
+            AND: [
+              { status: "closed" },
+              { submittedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } }
+            ]
+          },
+        ]
+      }, include: { categories: { select: { id: true, name: true } } }, orderBy: { submittedAt: "desc" }
+    });
+    console.log("Fetched Dealers:", data); // Debug log
+    return NextResponse.json({ data });
+  }
+  catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ data });
-}
-
-export async function PATCH(request: Request) {
-  const supabase = await createClient();
-
-  const body = await request.json();
-  const { id, status } = body;
-
-  if (!id || !status) {
-    return NextResponse.json(
-      { error: "id and status are required" },
-      { status: 400 }
-    );
-  }
-
-  if (!["new", "reviewed", "closed"].includes(status)) {
-    return NextResponse.json(
-      { error: "status must be new, reviewed or closed" },
-      { status: 400 }
-    );
-  }
-
-  const updates: Record<string, unknown> = { status };
-
-
-  if (status === "reviewed") {
-    updates.reviewed_at = new Date().toISOString();
-  }
-
-  const { data, error } = await supabase
-    .from("dealers")
-    .update(updates)
-    .eq("id", id)
-    .select(`*, categories:category_interest (id, name)`)
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ data });
 }
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
 
   try {
     const body = await request.json();
 
     const {
-      firm_name,
-      gst_number,
-      mobile_no,
+      firmName,
+      gstNumber,
+      mobileNo,
       district,
-      category_interest,
-      monthly_volume,
+      categoryInterest,
+      monthlyVolume,
       status,
     } = body;
 
     // Basic validation
-    if (!firm_name || !gst_number || !mobile_no || !district || !category_interest) {
+    if (!firmName || !gstNumber || !mobileNo || !district || !categoryInterest) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const { data, error } = await supabase
-      .from("dealers")
-      .insert([
-        {
-          firm_name,
-          gst_number,
-          mobile_no,
-          district,
-          category_interest,
-          monthly_volume: monthly_volume || null,
-          status: status || "new",
-          submitted_at: new Date().toISOString(),
-        },
-      ])
-      .select(`
-    *,
-    categories:category_interest (
-      id,
-      name
-    )
-  `)
-      .single();
+    const data = await prisma.dealer.create({
+      data: {
+        firmName,
+        gstNumber,
+        mobileNo,
+        district,
+        categoryInterest,
+        monthlyVolume: monthlyVolume || null,
+        status: status || "new",
+        submittedAt: new Date(),
+      },
+    }).then((dealer) => {
+      return prisma.dealer.findUnique({
+        where: { id: dealer.id },
+        include: { categories: { select: { id: true, name: true } } },
+      });
+    });
+    
+    return NextResponse.json({ data }, { status: 201 });
+  } catch (err:any) {
+    return NextResponse.json(
+      { error: err.message || "Failed to create dealer request" },
+      { status: 400 }
+    );
+  }
+}
 
-    if (error) {
+export async function PATCH(request: Request) {
+  try{
+
+    const body = await request.json();
+    const { id, status } = body;
+  
+    if (!id || !status) {
       return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
+        { error: "id and status are required" },
+        { status: 400 }
       );
     }
-
-    return NextResponse.json({ data }, { status: 201 });
-  } catch (err) {
+  
+    if (!["new", "reviewed", "closed"].includes(status)) {
+      return NextResponse.json(
+        { error: "status must be new, reviewed or closed" },
+        { status: 400 }
+      );
+    }
+  
+    const updates: Record<string, unknown> = { status };
+  
+  
+    if (status === "reviewed") {
+      updates.reviewedAt = new Date().toISOString();
+    }
+   const data = await prisma.dealer.update({
+      where: { id },
+      data: updates,
+      include: { categories: { select: { id: true, name: true } } },
+    });
+   
+    return NextResponse.json({ data });
+  }
+  catch(err:any){
     return NextResponse.json(
-      { error: "Invalid JSON body" },
+      { error: err.message || "Failed to update dealer request" },
       { status: 400 }
     );
   }

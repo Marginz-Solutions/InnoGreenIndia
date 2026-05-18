@@ -13,16 +13,16 @@ export default async function Page() {
       cache: "no-store",
     }),
   ]);
-
-  const [{ data: enquiries }, { data: dealers }] = await Promise.all([
-    enquiriesRes.json(),
-    reviewedRes.json(),
-  ]);
+   const enquiriesData = await enquiriesRes.json();
+   const reviewedData = await reviewedRes.json();
+  console.log("Enquiries Response:", enquiriesData);
+  console.log("Reviewed Dealers Response:", reviewedData);
 
   return (
     <DealersHubClient
-      enquiries={enquiries ?? []}
-      dealers={dealers ?? []}
+      enquiries={enquiriesData.data}
+      dealers={reviewedData.data}
     />
   );
 }
+

@@ -1,46 +1,38 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-    const supabase = await createClient();
+    try {
+        const data = await prisma.dealer.findMany({
+            where: { reviewedAt: { not: null } },
+            include: { categories: { select: { id: true, name: true } } },
+            orderBy: { reviewedAt: "desc" }
+        })
+        console.log("Fetched Reviewed Dealers:", data);
 
- const { data, error } = await supabase
-  .from("dealers")
-  .select(`
-    *,
-    categories:category_interest (
-      id,
-      name
-    )
-  `)
-  .not("reviewed_at", "is", null)
-  .order("reviewed_at", { ascending: false });
-
-    if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ data });
     }
-    console.log(data);
-    return NextResponse.json({ data });
+    catch (err: any) {
+        return NextResponse.json({ error: err.message || "Failed to fetch reviewed dealers" }, { status: 500 });
+    }
+
 }
 
 export async function DELETE(request: Request) {
-    const supabase = await createClient();
 
-    const { id } = await request.json();
+    try {
+        const { id } = await request.json();
+        const data = await prisma.dealer.delete({
+            where: {
+                id
+            }
+        })
+        console.log("Deleted Dealer:", data);
+        return NextResponse.json({ data });
 
-    if (!id) {
-        return NextResponse.json({ error: "id is required" }, { status: 400 });
     }
-    console.log("Deleting dealer with id:", id); // 👈 Debug log
-
-    const { error } = await supabase
-        .from("dealers")
-        .delete()
-        .eq("id", id);
-
-    if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    catch (err: any) {
+        return NextResponse.json({ error: err.message || "Failed to delete dealer" }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true }, { status: 200 });
 }
