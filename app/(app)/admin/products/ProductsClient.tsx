@@ -23,7 +23,8 @@ import { StatusBadge } from '@/components/website-customization/shared/StatusBad
 import { EmptyState } from '@/components/website-customization/shared/EmptyState';
 import { ProductCard } from '@/components/website-customization/products/Productcard';
 import { ProductModal } from '@/components/website-customization/products/Productmodal';
-import { Brand, Category, Product, ProductFilters } from '@/components/website-customization/types/common.types';
+import { Product, ProductFilters } from '@/components/website-customization/types/common.types';
+import { Brand, Category } from '@/lib/global.types';
 
 // ─── Mock Data ─────────────────────────────────────────────────────────────────
 

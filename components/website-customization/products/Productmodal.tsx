@@ -16,9 +16,10 @@ import { Select } from '@/components/website-customization/form/Select';
 import { ImageUploadBox } from '@/components/website-customization/shared/ImageUploadBox';
 import { Textarea } from '../form/TextArea';
 import { Toggle } from '../shared/Toggle';
-import { Product, Brand, Category } from '@/components/website-customization/types/common.types';
+import { Product } from '@/components/website-customization/types/common.types';
 import { TagInput } from './Taginput';
 import { uploadProductImage, deleteProductImage } from '@/lib/supabase/storage';
+import { Brand, Category } from '@/lib/global.types';
 
 
 // ─── Section divider ───────────────────────────────────────────────────────────
