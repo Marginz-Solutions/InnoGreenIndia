@@ -57,7 +57,7 @@ export const Sidebar = ({
         {isMobile && (
           <button
             onClick={onMobileClose}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-white/60 hover:text-white"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-white/60 hover:text-white cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -76,7 +76,7 @@ export const Sidebar = ({
                 if (isMobile) onMobileClose();
               }}
               title={collapsed && !isMobile ? label : undefined}
-              className={`w-full group flex items-center gap-3 rounded-xl transition-all duration-300 relative ${
+              className={`w-full group flex items-center gap-3 rounded-xl transition-all duration-300 cursor-pointer relative ${
                 collapsed && !isMobile ? 'justify-center p-3' : 'px-4 py-3.5'
               } ${isActive
                 ? 'bg-gradient-to-r from-[#1f7a36] to-[#2f9b43] text-white shadow-lg shadow-[#1f7a36]/20'
@@ -101,7 +101,7 @@ export const Sidebar = ({
       <div className="p-4 mt-auto border-t border-white/5">
         <button
             onClick={() => setOpen(true)}
-          className={`w-full flex items-center gap-3 text-white/60 hover:text-white hover:bg-red-500/10 rounded-xl transition-all duration-300 ${
+          className={`w-full flex items-center gap-3 text-white/60 hover:text-white hover:bg-red-500/10 rounded-xl transition-all duration-300 cursor-pointer ${
             collapsed && !isMobile ? 'justify-center p-3' : 'px-4 py-3.5'
           }`}
         >
@@ -128,7 +128,7 @@ export const Sidebar = ({
         <button
           onClick={onToggle}
           className={`absolute w-6 h-6 ${collapsed ? '-right-3 top-13 border-[1px] border-slate-700/50' : 'right-3 top-5'} 
-            flex items-center justify-center rounded-sm bg-[#07130b89] backdrop-blur-md text-white/80 hover:text-white transition-all duration-300 z-10`}
+            flex items-center justify-center rounded-sm bg-[#07130b89] backdrop-blur-md text-white/80 hover:text-white transition-all duration-300 z-10 cursor-pointer`}
           title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
         >
           <PanelRight size={18} className={collapsed ? '' : 'rotate-180'} />
