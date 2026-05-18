@@ -19,16 +19,16 @@ export default async function Page() {
     categoriesPayload,
   ] = await Promise.all([
     fetchAdminApi<ProductsPageResponse>(
-      "/api/v1/products?page=1&limit=20"
+      "/products?page=1&limit=20"
     ),
 
     fetchAdminApi<{
       data: Brand[];
-    }>("/api/v1/brands"),
+    }>("/brands"),
 
     fetchAdminApi<{
       data: Category[];
-    }>("/api/v1/categories"),
+    }>("/categories"),
   ]);
 
   const {

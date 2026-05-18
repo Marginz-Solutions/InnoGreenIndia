@@ -1,0 +1,509 @@
+"use client";
+
+import { useState, useTransition, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Search, SlidersHorizontal, X, LayoutGrid, LayoutList } from "lucide-react";
+import type { Dealer } from "./types";
+
+// ── Icons ──────────────────────────────────────────────────────────────────────
+
+function IconTrash() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
+  );
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function Initials({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
+  const letters = name?.split(" ").slice(0, 2).map((w) => w[0]).join("");
+  return (
+    <div className={`shrink-0 rounded-full bg-[#EAF3DE] flex items-center justify-center font-semibold text-[#2d5a27]
+      ${size === "sm" ? "h-7 w-7 text-[11px]" : "h-10 w-10 text-sm"}`}>
+      {letters}
+    </div>
+  );
+}
+
+function CategoryTag({ value }: { value: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1
+      text-[11px] font-medium text-gray-600 border border-gray-200 whitespace-nowrap">
+      🌿 {value}
+    </span>
+  );
+}
+
+function DeleteBtn({ onClick, loading }: { onClick: (e: React.MouseEvent) => void; loading?: boolean }) {
+  return (
+    <button onClick={onClick} disabled={loading}
+      className="shrink-0 rounded-full border border-red-100 bg-red-50 p-1.5 text-red-400
+        hover:bg-red-100 hover:text-red-600 transition disabled:opacity-50"
+      aria-label="Delete dealer">
+      {loading
+        ? <span className="block h-3.5 w-3.5 animate-spin rounded-full border-2 border-red-300 border-t-red-500" />
+        : <IconTrash />}
+    </button>
+  );
+}
+
+function DrawerField({
+  label, value, mono = false, muted = false, phone = false,
+}: {
+  label: string; value: string; mono?: boolean; muted?: boolean; phone?: boolean;
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">{label}</p>
+      <div className="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2.5 flex items-center justify-between">
+        <p className={`text-sm break-all ${mono ? "font-mono" : ""} ${muted ? "italic text-gray-300" : "text-gray-800"}`}>
+          {value}
+        </p>
+        {phone && (
+          <a href={`tel:${value}`}
+            className="ml-2 shrink-0 rounded-full bg-[#EAF3DE] px-2.5 py-1 text-[11px]
+              font-medium text-[#3B6D11] hover:bg-[#d4ebbc] transition">
+            Call
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FilterPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${active
+        ? "bg-[#edf8ee] text-[#1f7a36] border-[#b6debb]"
+        : "bg-white text-[#61756a] border-[#d1dfd5] hover:border-[#9bb4a1]"
+        }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+// ── Types ──────────────────────────────────────────────────────────────────────
+
+type ViewMode = "table" | "grid";
+
+type Filters = {
+  query: string;
+  category: string;
+  district: string;
+  volume: "all" | "provided" | "not_provided";
+};
+
+const emptyFilters: Filters = {
+  query: "",
+  category: "all",
+  district: "all",
+  volume: "all",
+};
+
+// ── Main client component ──────────────────────────────────────────────────────
+
+export default function ReviewedDealersClient({
+  dealers: initial,
+  setFetchedDealers,
+}: {
+  dealers: Dealer[];
+  setFetchedDealers: React.Dispatch<React.SetStateAction<Dealer[]>>;
+}) {
+  const router = useRouter();
+
+  const [dealers, setDealers] = useState<Dealer[]>(initial);
+  const [selected, setSelected] = useState<Dealer | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Dealer | null>(null);
+  const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [view, setView] = useState<ViewMode>("table");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [, startTransition] = useTransition();
+
+  const setFilter = <K extends keyof Filters>(key: K, value: Filters[K]) =>
+    setFilters((prev) => ({ ...prev, [key]: value }));
+
+  const clearFilters = () => setFilters(emptyFilters);
+
+  // Dynamic dropdown values from data
+  const categories = useMemo(
+    () => [...new Set(dealers.map((d) => d.categories.name))].sort(),
+    [dealers]
+  );
+  const districts = useMemo(
+    () => [...new Set(dealers.map((d) => d.district))].sort(),
+    [dealers]
+  );
+
+  const activeFiltersCount = [
+    filters.query,
+    filters.category !== "all" ? filters.category : "",
+    filters.district !== "all" ? filters.district : "",
+    filters.volume !== "all" ? filters.volume : "",
+  ].filter(Boolean).length;
+
+  const filtered = useMemo(() => {
+    return dealers?.filter((d) => {
+      const q = filters.query.toLowerCase();
+      const matchQuery =
+        !q ||
+        d?.firm_name?.toLowerCase().includes(q) ||
+        d?.district?.toLowerCase().includes(q) ||
+        d?.categories?.name?.toLowerCase().includes(q) ||
+        d?.gst_number?.toLowerCase().includes(q);
+
+      const matchCategory =
+        filters.category === "all" || d.categories.name === filters.category;
+
+      const matchDistrict =
+        filters.district === "all" || d.district === filters.district;
+
+      const matchVolume =
+        filters.volume === "all" ||
+        (filters.volume === "provided" && !!d.monthly_volume) ||
+        (filters.volume === "not_provided" && !d.monthly_volume);
+
+      return matchQuery && matchCategory && matchDistrict && matchVolume;
+    });
+  }, [dealers, filters]);
+
+  const openDelete = (dealer: Dealer) => {
+    setSelected(null);
+    setDeleteTarget(dealer);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeletingId(deleteTarget.id);
+
+    const res = await fetch("/api/v1/dealers/reviewed", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: deleteTarget.id }),
+    });
+
+    setFetchedDealers((prev) => prev.filter((d) => d.id !== deleteTarget.id));
+    setDeletingId(null);
+    setDeleteTarget(null);
+
+    if (!res.ok) {
+      const { error } = await res.json();
+      console.error("Delete failed:", error);
+      return;
+    }
+
+    setDealers((prev) => prev.filter((d) => d.id !== deleteTarget.id));
+    startTransition(() => router.refresh());
+  };
+
+  return (
+    <div className="min-h-screen p-6 font-sans overflow-y-scroll">
+
+      {/* Header */}
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900">Reviewed Dealers</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {dealers?.length} dealer{dealers?.length !== 1 ? "s" : ""} on record
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E6F1FB] px-3 py-1 text-xs font-medium text-[#185FA5]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#185FA5]" />
+          Reviewed
+        </span>
+      </div>
+
+      {/* ── Filter card ──────────────────────────────────────────────────────── */}
+      <div className="bg-white border border-[#e2ece3] rounded-2xl p-4 space-y-3 mb-4">
+
+        {/* Search + view toggle row */}
+        <div className="flex items-center gap-3 flex-col sm:flex-row">
+          <div className="relative flex-1">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9bb4a1] pointer-events-none" />
+            <input
+              value={filters.query}
+              onChange={(e) => setFilter("query", e.target.value)}
+              placeholder="Search by firm, district, category or GST…"
+              className="w-full pl-10 pr-4 py-2.5 border border-[#cfe0d2] rounded-xl text-sm
+                bg-[#fafdfb] focus:outline-none focus:border-[#2d5a27] focus:ring-2
+                focus:ring-[#2d5a27]/20 transition-all placeholder:text-[#b0bcb5]"
+            />
+            {filters.query && (
+              <button onClick={() => setFilter("query", "")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9bb4a1] hover:text-[#61756a]">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* View toggle */}
+          <div className="sm:flex border border-[#cfe0d2] rounded-xl overflow-hidden">
+            <button
+              onClick={() => setView("table")}
+              className={`px-3 py-2.5 transition-colors ${view === "table" ? "bg-[#edf8ee] text-[#1f7a36]" : "text-[#9bb4a1] hover:text-[#61756a]"
+                }`}
+              aria-label="Table view"
+            >
+              <LayoutList size={15} />
+            </button>
+            <button
+              onClick={() => setView("grid")}
+              className={`px-3 py-2.5 border-l border-[#cfe0d2] transition-colors ${view === "grid" ? "bg-[#edf8ee] text-[#1f7a36]" : "text-[#9bb4a1] hover:text-[#61756a]"
+                }`}
+              aria-label="Grid view"
+            >
+              <LayoutGrid size={15} />
+            </button>
+          </div>
+        </div>
+
+        {/* Filter pills row */}
+        <div className="flex flex-wrap items-center gap-2">
+          <SlidersHorizontal size={13} className="text-[#9bb4a1]" />
+
+          {/* Category */}
+          <select
+            value={filters.category}
+            onChange={(e) => setFilter("category", e.target.value)}
+            className="px-3 py-1.5 border border-[#d1dfd5] rounded-lg text-xs font-semibold
+              bg-white text-[#61756a] focus:outline-none focus:border-[#2d5a27] transition-all w-full sm:w-auto"
+          >
+            <option value="all">All Categories</option>
+            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+
+          {/* District */}
+          <select
+            value={filters.district}
+            onChange={(e) => setFilter("district", e.target.value)}
+            className="px-3 py-1.5 border border-[#d1dfd5] rounded-lg text-xs font-semibold
+              bg-white text-[#61756a] focus:outline-none focus:border-[#2d5a27] transition-all w-full sm:w-auto"
+          >
+            <option value="all">All Districts</option>
+            {districts.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+
+          {/* Volume pills */}
+          <div className="flex items-center gap-1.5 border-l border-[#e2ece3] pl-2">
+            <FilterPill label="All" active={filters.volume === "all"} onClick={() => setFilter("volume", "all")} />
+            <FilterPill label="Vol. Provided" active={filters.volume === "provided"} onClick={() => setFilter("volume", "provided")} />
+            <FilterPill label="No Volume" active={filters.volume === "not_provided"} onClick={() => setFilter("volume", "not_provided")} />
+          </div>
+
+          {/* Clear */}
+          {activeFiltersCount > 0 && (
+            <button onClick={clearFilters}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-red-400
+                hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-auto">
+              <X size={11} />
+              Clear ({activeFiltersCount})
+            </button>
+          )}
+
+          {/* Results count */}
+          <span className="ml-auto text-xs text-[#9bb4a1] font-medium">
+            {filtered?.length} dealer{filtered?.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+      </div>
+
+      {/* Empty state */}
+      {filtered?.length === 0 && (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white py-16 text-center">
+          <div className="mb-3 text-4xl">🔎</div>
+          <p className="text-sm font-medium text-gray-700">No dealers found</p>
+          <p className="text-xs text-gray-400 mt-1">Try adjusting your filters.</p>
+        </div>
+      )}
+
+      {/* ── GRID VIEW ─────────────────────────────────────────────────────────── */}
+      {view === "grid" && filtered?.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filtered?.map((dealer) => (
+            <div key={dealer.id} onClick={() => setSelected(dealer)}
+              className="cursor-pointer rounded-2xl border border-gray-200 bg-white p-5 shadow-sm
+                transition hover:shadow-md hover:border-gray-300 flex flex-col justify-between">
+              <div>
+                <div className="flex items-start justify-between gap-2 mb-4">
+                  <div className="flex items-center gap-3">
+                    <Initials name={dealer.firm_name} />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 leading-tight">{dealer.firm_name}</p>
+                      <p className="text-[11px] font-mono text-gray-400 mt-0.5">{dealer.gst_number}</p>
+                    </div>
+                  </div>
+                  <DeleteBtn
+                    loading={deletingId === dealer.id}
+                    onClick={(e) => { e.stopPropagation(); openDelete(dealer); }}
+                  />
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <span className="text-gray-400">📍</span>{dealer.district}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400">📞</span>
+                    <a href={`tel:${dealer.mobile_no}`} onClick={(e) => e.stopPropagation()}
+                      className="text-[#2d5a27] font-medium hover:underline">{dealer.mobile_no}</a>
+                  </div>
+                  {dealer.monthly_volume && (
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <span className="text-gray-400">📦</span>{dealer.monthly_volume} / mo
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                <CategoryTag value={dealer.categories.name} />
+                <p className="text-[10px] text-gray-400">{dealer.reviewed_at}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── TABLE VIEW ────────────────────────────────────────────────────────── */}
+      {view === "table" && filtered?.length > 0 && (
+        <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50 text-left">
+                  {["Firm Name", "GST Number", "Mobile No", "District", "Category", "Vol / mo", "Reviewed At", ""].map((h) => (
+                    <th key={h} className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider
+                      text-gray-400 whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((dealer, i) => (
+                  <tr key={dealer.id} onClick={() => setSelected(dealer)}
+                    className={`cursor-pointer transition hover:bg-[#f9faf7]
+                      ${i < filtered.length - 1 ? "border-b border-gray-100" : ""}`}>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <Initials name={dealer.firm_name} size="sm" />
+                        <span className="font-medium text-gray-900 whitespace-nowrap">{dealer.firm_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{dealer.gst_number}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <a href={`tel:${dealer.mobile_no}`} onClick={(e) => e.stopPropagation()}
+                        className="text-[#2d5a27] text-xs font-medium hover:underline">{dealer.mobile_no}</a>
+                    </td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{dealer.district}</td>
+                    <td className="px-4 py-3"><CategoryTag value={dealer.categories.name} /></td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                      {dealer.monthly_volume ?? <span className="italic text-gray-300">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{dealer.reviewed_at}</td>
+                    <td className="px-4 py-3">
+                      <DeleteBtn
+                        loading={deletingId === dealer.id}
+                        onClick={(e) => { e.stopPropagation(); openDelete(dealer); }}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Detail Drawer ──────────────────────────────────────────────────────── */}
+      {selected && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={() => setSelected(null)} />
+          <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-3xl bg-white shadow-2xl max-h-[90vh]
+            md:inset-x-auto md:inset-y-0 md:right-0 md:left-auto md:h-full md:w-[30rem]
+            md:max-h-full md:rounded-none md:rounded-l-3xl">
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-5 pt-5 md:px-6 md:pt-6">
+              <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200 md:hidden" />
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-base font-semibold text-gray-900">{selected.firm_name}</h2>
+                <button onClick={() => setSelected(null)}
+                  className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"
+                  aria-label="Close">✕</button>
+              </div>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E6F1FB] px-3 py-1
+                text-xs font-medium text-[#185FA5] mb-5">
+                ✓ Reviewed dealer
+              </span>
+              <div className="flex flex-col gap-4">
+                <DrawerField label="Firm Name" value={selected.firm_name} />
+                <DrawerField label="GST Number" value={selected.gst_number} mono />
+                <DrawerField label="Mobile No" value={selected.mobile_no} mono phone />
+                <DrawerField label="District" value={selected.district} />
+                <DrawerField label="Category Interest" value={selected.categories.name} />
+                <DrawerField
+                  label="Monthly Volume (optional)"
+                  value={selected.monthly_volume ?? "Not provided"}
+                  muted={!selected.monthly_volume}
+                />
+                <DrawerField label="Reviewed At" value={selected.reviewed_at} />
+              </div>
+            </div>
+
+            {/* Pinned bottom action */}
+            <div className="shrink-0 border-t border-gray-100 px-5 py-4 md:px-6 md:py-6">
+              <button onClick={() => openDelete(selected)}
+                className="w-full rounded-full border border-red-200 bg-red-50 py-2.5 text-sm
+                  font-medium text-red-500 hover:bg-red-100 hover:text-red-700 transition">
+                🗑 Delete Dealer
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Delete Confirmation Modal ──────────────────────────────────────────── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center px-6">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 mx-auto">
+              <svg className="h-5 w-5 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              </svg>
+            </div>
+            <h3 className="text-center text-base font-semibold text-gray-900 mb-1">Delete Dealer?</h3>
+            <p className="text-center text-sm text-gray-500 mb-6">
+              <span className="font-medium text-gray-700">{deleteTarget.firm_name}</span> will be permanently removed.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteTarget(null)} disabled={!!deletingId}
+                className="flex-1 rounded-full border border-gray-200 py-2.5 text-sm font-medium
+                  text-gray-600 hover:bg-gray-50 transition disabled:opacity-50">
+                Cancel
+              </button>
+              <button onClick={confirmDelete} disabled={!!deletingId}
+                className="flex-1 rounded-full bg-red-500 py-2.5 text-sm font-medium text-white
+                  hover:bg-red-600 transition disabled:opacity-70 flex items-center justify-center gap-2">
+                {deletingId ? (
+                  <>
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                    Deleting…
+                  </>
+                ) : "Yes, Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

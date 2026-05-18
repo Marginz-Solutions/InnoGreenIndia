@@ -26,7 +26,7 @@ export type SmartEnquiryResponse = {
 }
 
 const page = async() => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/smart-enquiries`,{cache: "no-store"})
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/smart-enquiries`,{cache: "no-store"})
 
   const data = await response.json() as SmartEnquiryResponse
 

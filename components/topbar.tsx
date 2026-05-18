@@ -1,4 +1,5 @@
 "use client";
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -39,6 +40,7 @@ export function Topbar() {
             <Link
               key={link.href}
               href={link.href}
+              className={pathname === link.href ? "active" : ""}
               className={pathname === link.href ? "active" : ""}
             >
               {link.label}

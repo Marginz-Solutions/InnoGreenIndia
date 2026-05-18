@@ -6,8 +6,8 @@ import { BrandsPageResponse } from './types';
 
 export default async function BrandsPage() {
   const [brandsPayload, categoriesPayload] = await Promise.all([
-    fetchAdminApi<BrandsPageResponse>('/api/v1/brands?page=1&limit=12'),
-    fetchAdminApi<{ data: Category[] }>('/api/v1/categories'),
+    fetchAdminApi<BrandsPageResponse>('/brands?page=1&limit=12'),
+    fetchAdminApi<{ data: Category[] }>('/categories'),
   ]);
 
   const { data: items, pagination } = brandsPayload;
