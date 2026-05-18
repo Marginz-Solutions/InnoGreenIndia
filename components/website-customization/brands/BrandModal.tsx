@@ -10,7 +10,7 @@ import { Textarea } from '@/components/website-customization/form/TextArea';
 import { Toggle } from '@/components/website-customization/shared/Toggle';
 import { TagInput } from '@/components/website-customization/products/Taginput';
 import ErrorBanner from '@/components/ErrorBanner';
-import type { Brand, Category } from '@/components/website-customization/types/common.types';
+import type { Brand, Category } from '@/lib/global.types';
 
 interface Props {
   open: boolean;

@@ -1,9 +1,10 @@
 export type SidebarSection =
-| 'pulse'
 | 'dashboard'
+| 'pulse'
 | 'products'
 | 'brands'
 | 'dealer'
+| 'smartEnquiries'
 | 'contacts'
 | 'categories';
 
@@ -15,22 +16,24 @@ export interface PulseItem {
   available: boolean;
   status: 'active' | 'draft';
   category: string;
-  createdAt: string;
+  created_at: string;
 }
 
 export interface Product {
   id: string;
   name: string;
   slug: string;
-  brandId: string;
-  categoryId: string;
+  brand_id: string;
+  category_id: string;
+  quantity: number;
+  quantity_unit: string;
   description: string;
-  shortDescription: string;
-  imageUrl?: string;
+  short_description: string;
+  image_url?: string;
   tags: string[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
   sku: string;
   featured: boolean;
   status: 'active' | 'inactive';
@@ -44,14 +47,6 @@ export interface ProductFilters {
   featured: 'all' | 'yes' | 'no';
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
 export interface BrandContact {
   id: string;
   name: string;
@@ -63,23 +58,6 @@ export interface BrandContact {
   city?: string | null;
   state?: string | null;
   pincode?: string | null;
-}
-
-export interface Brand {
-  id: string;
-  name: string;
-  slug?: string | null;
-  description?: string | null;
-  logoUrl: string;
-  imageUrl?: string | null;
-  websiteUrl?: string | null;
-  isActive: boolean;
-  tags: string[];
-  contactId?: string | null;
-  contact?: BrandContact | null;
-  categories: { id: string; name: string; slug: string }[];
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface Dealer {

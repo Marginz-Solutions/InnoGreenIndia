@@ -16,9 +16,9 @@ import { Select } from '@/components/website-customization/form/Select';
 import { ImageUploadBox } from '@/components/website-customization/shared/ImageUploadBox';
 import { Textarea } from '../form/TextArea';
 import { Toggle } from '../shared/Toggle';
-import { Product, Brand, Category } from '@/components/website-customization/types/common.types';
+import { Product } from '@/components/website-customization/types/common.types';
 import { TagInput } from './Taginput';
-import { uploadProductImage, deleteProductImage } from '@/lib/supabase/storage';
+import { Brand, Category } from '@/lib/global.types';
 
 
 // ─── Section divider ───────────────────────────────────────────────────────────
@@ -47,26 +47,32 @@ const toSlug = (name: string) =>
     .replace(/\s+/g, '-');
 
 // ─── Empty form state ─────────────────────────────────────────────────────────
-const empty = (): Omit<Product, 'id' | 'createdAt' | 'updatedAt'> => ({
+const empty = (): Omit<Product, 'id' | 'created_at' | 'updated_at'> => ({
   name: '',
   slug: '',
-  brandId: '',
-  categoryId: '',
+  brand_id: '',
+  category_id: '',
   description: '',
-  shortDescription: '',
-  imageUrl: '',
+  short_description: '',
+  image_url: '',
   tags: [],
-  isActive: true,
+  is_active: true,
   sku: '',
   featured: false,
   status: 'active',
+  quantity: 0,
+  quantity_unit: '',
 });
 
 // ─── Component ────────────────────────────────────────────────────────────────
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSave: (product: Product) => void;
+  onSave: (
+  product: Product,
+  selectedFile:
+    File | null
+) => Promise<void>;
   editProduct: Product | null;
   brands: Brand[];
   categories: Category[];
@@ -88,6 +94,11 @@ export const ProductModal = ({
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  useEffect(() => {
+    console.log('Brands in modal:', brands);
+    console.log('Categories in modal:', categories);
+  }, [brands]);
+
   // Sync form when editProduct changes
   useEffect(() => {
     setErrors({});
@@ -98,23 +109,23 @@ export const ProductModal = ({
       });
 
       setImagePreview(
-        editProduct.imageUrl ?? ''
+        editProduct.image_url ?? ''
       );
 
       setSlugLocked(true);
     } else {
-  setForm(empty());
+      setForm(empty());
 
-  setSlugLocked(false);
+      setSlugLocked(false);
 
-  setImagePreview("");
+      setImagePreview("");
 
-  setSelectedFile(null);
+      setSelectedFile(null);
 
-  if (fileInputRef.current) {
-    fileInputRef.current.value = "";
-  }
-}
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   }, [editProduct, open]);
 
   const set = <K extends keyof typeof form>(key: K, val: (typeof form)[K]) =>
@@ -126,68 +137,68 @@ export const ProductModal = ({
   };
 
   const handleImageChange = (
-  e: React.ChangeEvent<HTMLInputElement>
-) => {
-  const file =
-    e.target.files?.[0];
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file =
+      e.target.files?.[0];
 
-  if (!file) return;
+    if (!file) return;
 
-  // Validate type
-  if (
-    ![
-      "image/png",
-      "image/jpeg",
-      "image/webp",
-      "image/svg+xml",
-    ].includes(file.type)
-  ) {
+    // Validate type
+    if (
+      ![
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "image/svg+xml",
+      ].includes(file.type)
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        image_url:
+          "Only PNG, JPG, WEBP, SVG allowed",
+      }));
+
+      return;
+    }
+
+    // Validate size
+    if (
+      file.size >
+      2 * 1024 * 1024
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        image_url:
+          "Image must be below 2MB",
+      }));
+
+      return;
+    }
+
+    // store file only
+    setSelectedFile(file);
+
+    // local preview only
+    if (
+      imagePreview &&
+      imagePreview.startsWith("blob:")
+    ) {
+      URL.revokeObjectURL(
+        imagePreview
+      );
+    }
+
+    const previewUrl =
+      URL.createObjectURL(file);
+
+    setImagePreview(previewUrl);
+
     setErrors((prev) => ({
       ...prev,
-      imageUrl:
-        "Only PNG, JPG, WEBP, SVG allowed",
+      image_url: "",
     }));
-
-    return;
-  }
-
-  // Validate size
-  if (
-    file.size >
-    2 * 1024 * 1024
-  ) {
-    setErrors((prev) => ({
-      ...prev,
-      imageUrl:
-        "Image must be below 2MB",
-    }));
-
-    return;
-  }
-
-  // store file only
-  setSelectedFile(file);
-
-  // local preview only
-  if (
-  imagePreview &&
-  imagePreview.startsWith("blob:")
-) {
-  URL.revokeObjectURL(
-    imagePreview
-  );
-}
-
-const previewUrl =
-  URL.createObjectURL(file);
-
-setImagePreview(previewUrl);
-
-  setErrors((prev) => ({
-    ...prev,
-    imageUrl: "",
-  }));
-};
+  };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -203,18 +214,18 @@ setImagePreview(previewUrl);
     }
 
     // Brand
-    if (!form.brandId) {
-      newErrors.brandId = "Please select a brand";
+    if (!form.brand_id) {
+      newErrors.brand_id = "Please select a brand";
     }
 
     // Category
-    if (!form.categoryId) {
-      newErrors.categoryId = "Please select a category";
+    if (!form.category_id) {
+      newErrors.category_id = "Please select a category";
     }
 
     // Short description
-    if (!form.shortDescription.trim()) {
-      newErrors.shortDescription =
+    if (!form.short_description.trim()) {
+      newErrors.short_description =
         "Short description is required";
     }
 
@@ -235,110 +246,73 @@ setImagePreview(previewUrl);
   };
 
   const handleSubmit = async (
-  e: React.FormEvent
-) => {
-  e.preventDefault();
+    e: React.FormEvent
+  ) => {
+    e.preventDefault();
 
-  if (!validate()) return;
+    if (!validate()) return;
 
-  try {
-    const cleanedForm = {
-      ...form,
-
-      name: form.name.trim(),
-      slug: form.slug.trim(),
-      sku: form.sku.trim(),
-
-      shortDescription:
-        form.shortDescription.trim(),
-
-      description:
-        form.description.trim(),
-    };
-
-    let imageUrl =
-      form.imageUrl;
-
-    // Upload ONLY on save
-    // Upload ONLY on save
-if (selectedFile) {
-  setUploading(true);
-
-  // store old image before replace
-  const oldImageUrl =
-    editProduct?.imageUrl;
-
-  // upload new image
-  imageUrl =
-    await uploadProductImage(
-      selectedFile
-    );
-
-  // delete old image AFTER successful upload
-  if (
-    oldImageUrl &&
-    oldImageUrl !== imageUrl
-  ) {
     try {
-      await deleteProductImage(
-        oldImageUrl
-      );
+      const cleanedForm = {
+        ...form,
+
+        name: form.name.trim(),
+        slug: form.slug.trim(),
+        sku: form.sku.trim(),
+
+        short_description:
+          form.short_description.trim(),
+
+        description:
+          form.description.trim(),
+      };
+
+      const now =
+        new Date().toISOString();
+
+      const product: Product = {
+        id:
+          editProduct?.id ??
+          String(Date.now()),
+
+        created_at:
+          editProduct?.created_at ??
+          now,
+
+        updated_at: now,
+
+        ...cleanedForm,
+
+      };
+
+      await onSave(
+  product,
+  selectedFile
+);
+      setSelectedFile(null);
+
+      if (
+        imagePreview &&
+        imagePreview.startsWith("blob:")
+      ) {
+        URL.revokeObjectURL(
+          imagePreview
+        );
+      }
+
+      setImagePreview("");
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+      onClose();
     } catch (err) {
-      console.error(
-        "Failed to delete old image",
-        err
-      );
+      console.error(err);
+
+      setUploading(false);
     }
-  }
-
-  setUploading(false);
-}
-
-    const now =
-      new Date().toISOString();
-
-    const product: Product = {
-      id:
-        editProduct?.id ??
-        String(Date.now()),
-
-      createdAt:
-        editProduct?.createdAt ??
-        now,
-
-      updatedAt: now,
-
-      ...cleanedForm,
-
-      imageUrl,
-    };
-
-    await onSave(product);
-
-    setSelectedFile(null);
-
-    if (
-  imagePreview &&
-  imagePreview.startsWith("blob:")
-) {
-  URL.revokeObjectURL(
-    imagePreview
-  );
-}
-
-setImagePreview("");
-
-if (fileInputRef.current) {
-  fileInputRef.current.value = "";
-}
-
-    onClose();
-  } catch (err) {
-    console.error(err);
-
-    setUploading(false);
-  }
-};
+  };
 
   return (
     <Modal
@@ -352,7 +326,7 @@ if (fileInputRef.current) {
         <Section icon={Package} label="Media" />
         <FormField
           label="Product Image"
-          error={errors.imageUrl}
+          error={errors.image_url}
         >
           <div className="space-y-3">
             <div
@@ -422,13 +396,41 @@ if (fileInputRef.current) {
               placeholder="PST-001"
             />
           </FormField>
+
+          <div className="grid grid-cols-2 gap-3">
+  <FormField label="Quantity" error={errors.quantity}>
+    <Input
+      value={form.quantity || 0}
+      onChange={(e) => set('quantity', parseInt(e.target.value) || 0)}
+      placeholder="0"
+      min="0"
+    />
+  </FormField>
+  <FormField label="Unit" error={errors.quantity_unit}>
+    <Select
+      value={form.quantity_unit || 'pcs'}
+      onChange={(e) => set('quantity_unit', e.target.value)}
+    >
+      <option value="pcs">Pieces (pcs)</option>
+      <option value="kg">Kilograms (kg)</option>
+      <option value="l">Liters (l)</option>
+      <option value="m">Meters (m)</option>
+      <option value="box">Boxes</option>
+      <option value="pack">Packs</option>
+      <option value="dozen">Dozen</option>
+      <option value="ton">Tons</option>
+      <option value="ml">Milliliters (ml)</option>
+      <option value="g">Grams (g)</option>
+    </Select>
+  </FormField>
+</div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Brand" error={errors.brandId}>
+          <FormField label="Brand" error={errors.brand_id}>
             <Select
-              value={form.brandId}
-              onChange={(e) => set('brandId', e.target.value)}
+              value={form.brand_id}
+              onChange={(e) => set('brand_id', e.target.value)}
             >
               <option value="">Select brand…</option>
               {brands.map((b) => (
@@ -438,10 +440,10 @@ if (fileInputRef.current) {
               ))}
             </Select>
           </FormField>
-          <FormField label="Category" error={errors.categoryId}>
+          <FormField label="Category" error={errors.category_id}>
             <Select
-              value={form.categoryId}
-              onChange={(e) => set('categoryId', e.target.value)}
+              value={form.category_id}
+              onChange={(e) => set('category_id', e.target.value)}
             >
               <option value="">Select category…</option>
               {categories.map((c) => (
@@ -453,10 +455,10 @@ if (fileInputRef.current) {
           </FormField>
         </div>
 
-        <FormField label="Short Description" error={errors.shortDescription}>
+        <FormField label="Short Description" error={errors.short_description}>
           <Input
-            value={form.shortDescription}
-            onChange={(e) => set('shortDescription', e.target.value)}
+            value={form.short_description}
+            onChange={(e) => set('short_description', e.target.value)}
             placeholder="One-line summary shown on product cards"
           />
         </FormField>
@@ -494,8 +496,8 @@ if (fileInputRef.current) {
           </div>
           <div className="px-4 py-3.5">
             <Toggle
-              checked={form.isActive}
-              onChange={(v) => set('isActive', v)}
+              checked={form.is_active}
+              onChange={(v) => set('is_active', v)}
               label="Listing Active"
               description="Controls whether this product appears in search & listings"
             />

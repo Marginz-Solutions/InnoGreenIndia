@@ -56,11 +56,16 @@ export const rollbackUploads = async (
  */
 export const extractStoragePath = (publicUrl: string, bucketName: string): string | null => {
     try {
+        const url = new URL(publicUrl);
         // "https://xxx.supabase.co/storage/v1/object/public/brand-assets/uuid.png"
         const marker = `/object/public/${bucketName}/`;
-        const idx = publicUrl.indexOf(marker);
+        const idx = url.pathname.indexOf(marker);
         if(idx === -1) return null;
-        return publicUrl.slice(idx + marker.length);
+        return decodeURIComponent(
+      url.pathname.slice(
+        idx + marker.length
+      )
+    );
     }
     catch(error) {
         return null;

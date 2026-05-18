@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { Activity } from 'react';
 
 interface Props {
-  label: string;
+  label?: string;
   className?: string;
   children: React.ReactNode;
   error?: string;
@@ -14,9 +14,11 @@ export const FormField = ({
   error,
 }: Props) => (
   <div className="space-y-1.5">
-    <label className={`block text-xs font-bold text-[#21432a] uppercase tracking-wide ${className}`}>
-      {label}
-    </label>
+    <Activity mode={label ? 'visible' : 'hidden'}>
+      <label className={`block text-xs font-bold text-[#21432a] uppercase tracking-wide ${className}`}>
+        {label}
+      </label>
+    </Activity>
 
     {children}
 

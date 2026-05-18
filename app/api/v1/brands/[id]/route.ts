@@ -9,7 +9,7 @@ import { rollbackUploads, uploadImage, extractStoragePath } from "../_upload";
 type RouteContext = { params: Promise<{ id: string }> };
 
 /**
- * @method PATCH /api/v1/admin/brands/[id]
+ * @method PATCH /api/v1/brands/[id]
  * @description Update an existing brand with the given ID
  * @param {string} id - ID of the brand to be updated
  */
@@ -141,7 +141,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
                         },
                     },
                     brandCategories: {
-                        include: { category: { select: { id: true, name: true, slug: true } } },
+                        include: { categories: { select: { id: true, name: true, slug: true } } },
                     }
                 }
             });
@@ -153,7 +153,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
         const formatted = {
             ...brand,
-            categories: brand.brandCategories.map((bc: any) => bc.category),
+            categories: brand.brandCategories.map((bc: any) => bc.categories),
             brandCategories: undefined,
         };
 
@@ -171,7 +171,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 }
 
 /**
- * @method DELETE /api/v1/admin/brands/[id]
+ * @method DELETE /api/v1/brands/[id]
  * @description Delete an existing brand with the given id
  * @param {string} id - id of the brand to be deleted
  */

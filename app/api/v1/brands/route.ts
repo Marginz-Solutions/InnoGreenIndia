@@ -1,6 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import z from "zod";
 
 import { getAuthContext } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils";
@@ -8,7 +7,7 @@ import { createBrandSchema } from "./_validation";
 import { rollbackUploads, uploadImage } from "./_upload";
 
 /**
- * @method GET /api/v1/admin/brands
+ * @method GET /api/v1/brands
  * @description Retrieve all brands based on the query, filter and paginations
  * @param {Object} query - Query parameters
  * @param {string} [query.search] - Search term to filter brands
@@ -19,6 +18,7 @@ import { rollbackUploads, uploadImage } from "./_upload";
  * @param {number} [query.limit] - Items per page (default: 10)
  */
 export async function GET(request: NextRequest) {
+
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status') || 'all';
@@ -34,35 +34,37 @@ export async function GET(request: NextRequest) {
         ...(categoryId !== 'all' && { brandCategories: { some: { categoryId } } }),
     };
 
+    
+
     try {
-        const [data, total, activeCount, inactiveCount] = await Promise.all([
+        const [data, total] = await Promise.all([
             prisma.brand.findMany({
                 where,
                 include: {
-                    contact: {
+                    contacts: {
                         select: {
                             id: true, name: true, email: true, phoneNo: true, whatsapp: true,
                             addressLine1: true, addressLine2: true, city: true, state: true, pincode: true,
                         },
                     },
                     brandCategories: {
-                        include: { category: { select: { id: true, name: true, slug: true } } },
+                        include: { categories: { select: { id: true, name: true, slug: true } } },
                     }
                 },
                 orderBy: { [sort]: 'asc' },
                 skip: (page - 1) * limit,
                 take: limit,
             }),
-            prisma.brand.count({ where }),
-            prisma.brand.count({ where: { ...where, isActive: true } }),
-            prisma.brand.count({ where: { ...where, isActive: false } }),
+            prisma.brand.count(),
+            // prisma.brand.count({ where: { ...where, isActive: true } }),
+            // prisma.brand.count({ where: { ...where, isActive: false } }),
         ]);
     
         const totalPages = Math.ceil(total / limit);
     
         const formattedData = data?.map((brand: any) => ({
             ...brand,
-            categories: brand.brandCategories.map((bc: any) => bc.category),
+            categories: brand.brandCategories.map((bc: any) => bc.categories),
             brandCategories: undefined
         }))
     
@@ -72,12 +74,7 @@ export async function GET(request: NextRequest) {
                 total, page, limit, totalPages,
                 hasNextPage: page < totalPages,
                 hasPrevPage: page > 1,
-            },
-            stats: {
-                brandsTotal: total,
-                brandsActive: activeCount,
-                brandsInactive: inactiveCount,
-            },
+            }
         });
     }
     catch(error: any) {
@@ -87,7 +84,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * @method POST /api/v1/admin/brands
+ * @method POST /api/v1/brands
  * @description Create a new brand with the given details
  * @param {Object} body - Request body parameters
  * @param {string} body.name - Name of the brand to be created
@@ -206,7 +203,7 @@ export async function POST(request: NextRequest) {
                         },
                     },
                     brandCategories: {
-                        include: { category: { select: { id: true, name: true, slug: true } } },
+                        include: { categories: { select: { id: true, name: true, slug: true } } },
                     }
                 },
             });
@@ -218,7 +215,7 @@ export async function POST(request: NextRequest) {
 
         const formatted = {
             ...brand,
-            categories: brand.brandCategories.map((bc: any) => bc.category),
+            categories: brand.brandCategories.map((bc: any) => bc.categories),
             brandCategories: undefined,
         };
 
