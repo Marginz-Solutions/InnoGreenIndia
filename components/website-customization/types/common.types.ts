@@ -44,44 +44,6 @@ export interface ProductFilters {
   featured: 'all' | 'yes' | 'no';
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface BrandContact {
-  id: string;
-  name: string;
-  email?: string | null;
-  phoneNo: string;
-  whatsapp: string;
-  addressLine1?: string | null;
-  addressLine2?: string | null;
-  city?: string | null;
-  state?: string | null;
-  pincode?: string | null;
-}
-
-export interface Brand {
-  id: string;
-  name: string;
-  slug?: string | null;
-  description?: string | null;
-  logoUrl: string;
-  imageUrl?: string | null;
-  websiteUrl?: string | null;
-  isActive: boolean;
-  tags: string[];
-  contactId?: string | null;
-  contact?: BrandContact | null;
-  categories: { id: string; name: string; slug: string }[];
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface Dealer {
   id: string;
   name: string;
