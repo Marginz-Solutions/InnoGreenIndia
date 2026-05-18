@@ -14,7 +14,8 @@
     "prisma:generate": "npx prisma generate"
   },
   "dependencies": {
-    "@prisma/client": "6.8.2",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
     "@tailwindcss/postcss": "^4.3.0",
@@ -28,7 +29,6 @@
     "lucide-react": "^1.14.0",
     "next": "^16.2.6",
     "postcss": "^8.5.14",
-    "prisma": "6.8.2",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-leaflet": "^5.0.0",
@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@onozaty/prisma-schema-fixer": "^1.2.2",
-    "@types/pg": "^8.20.0"
+    "@types/pg": "^8.20.0",
+    "prisma": "^7.8.0"
   }
 }

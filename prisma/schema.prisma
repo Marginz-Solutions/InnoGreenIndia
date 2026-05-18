@@ -1,11 +1,9 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -64,7 +62,7 @@ model Brand {
   brandCategories BrandCategory[]
   contacts        Contact?        @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: NoAction)
   products        Product[]
-  smartEnquiries SmartEnquiry[]
+  smartEnquiries  SmartEnquiry[]
 
   @@index([isActive], map: "index_brands_is_active")
   @@index([slug], map: "index_brands_slug")
@@ -81,8 +79,7 @@ model Category {
   brandCategories BrandCategory[]
   dealers         Dealer[]
   products        Product[]
-  smartEnquiries SmartEnquiry[]
-
+  smartEnquiries  SmartEnquiry[]
 
   @@index([name], map: "index_categories_name")
   @@map("categories")
@@ -113,7 +110,6 @@ model Contact {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Dealer {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   firmName         String    @map("firm_name")
   gstNumber        String?   @map("gst_number")
   mobileNo         String?   @map("mobile_no")
@@ -123,6 +119,7 @@ model Dealer {
   submittedAt      DateTime? @map("submitted_at") @db.Timestamp(6)
   status           String?
   reviewedAt       DateTime? @map("reviewed_at") @db.Timestamp(6)
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   categories       Category? @relation(fields: [categoryInterest], references: [id], onDelete: Cascade)
 
   @@map("dealers")
@@ -131,41 +128,23 @@ model Dealer {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Product {
   id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
   name             String
-
   slug             String    @unique
-
   brandId          String?   @map("brand_id") @db.Uuid
-
   categoryId       String?   @map("category_id") @db.Uuid
-
   description      String?
-
   imageUrl         String?   @map("image_url")
-
   tags             String[]  @default([])
-
   isActive         Boolean?  @default(true) @map("is_active")
-
   createdAt        DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-
   updatedAt        DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
-
   sku              String?   @unique
-
   featured         Boolean?  @default(false)
-
   status           String?   @default("active")
-
   shortDescription String?   @map("short_description")
-
-  quantity     Float?
-
-  quantityUnit String?
-
+  quantity         Float?
+  quantityUnit     String?
   brands           Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
-
   categories       Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@index([status])
@@ -175,7 +154,6 @@ model Product {
   @@index([createdAt], map: "index_products_created_at")
   @@map("products")
 }
-
 
 model SmartEnquiry {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -190,11 +168,14 @@ model SmartEnquiry {
   message    String?
   status     String?   @default("new")
   createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
-  reviewedAt  DateTime? @default(now()) @map("reviewed_at") @db.Timestamptz(6)
-  closedAt  DateTime? @default(now()) @map("closed_at") @db.Timestamptz(6)
+  closedAt   DateTime? @map("closed_at") @db.Timestamptz(6)
+  reviewedAt DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  brands     Brand     @relation(fields: [brand], references: [id], onDelete: Cascade, map: "fk_brand")
+  categories Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, map: "fk_category")
 
-  brands     Brand?    @relation(fields: [brand], references: [id], onDelete: Cascade)
-  categories Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
+  @@index([brand], map: "idx_smart_enquiries_brand_id")
+  @@index([categoryId, brand], map: "idx_smart_enquiries_category_brand")
+  @@index([createdAt(sort: Desc)], map: "idx_smart_enquiries_created_at")
+  @@index([status], map: "idx_smart_enquiries_status")
   @@map("smart_enquiries")
 }
