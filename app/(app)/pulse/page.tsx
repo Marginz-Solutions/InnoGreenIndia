@@ -28,13 +28,13 @@ const TYPE_MAP = Object.fromEntries(PULSE_TYPE_LIST.map(t => [t.value, t]));
 // Accent bar & icon tints — green family for product/category, neutral for operational types
 const TYPE_ACCENTS = {
   trending_product:   '#1f7a36',
-  dealer_activity:    '#4b5563',
-  enquiry_insight:    '#6b7280',
-  product_update:     '#2d5a27',
-  category_highlight: '#3d7a47',
-  seasonal_insight:   '#61756a',
-  announcement:       '#374151',
-  website_highlight:  '#4b5563',
+  dealer_activity:    '#1f7a36',
+  enquiry_insight:    '#1f7a36',
+  product_update:     '#1f7a36',
+  category_highlight: '#1f7a36',
+  seasonal_insight:   '#1f7a36',
+  announcement:       '#1f7a36',
+  website_highlight:  '#1f7a36',
 };
 
 // Status — green for live, slate for scheduled, muted gray for inactive, amber for expired
@@ -631,15 +631,15 @@ function PulseModal({ open, onClose, onSave, editPulse }) {
   return (
     <div
       style={{
-        position: 'absolute',
-        top: 0, left: 0, right: 0,
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
         minHeight: '100%',
         background: 'rgba(16, 32, 24, 0.55)',
         zIndex: 50,
         display: 'flex',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'center',
-        padding: '32px 16px 80px',
+        padding: '24px 16px',
       }}
     >
       <div
@@ -995,10 +995,8 @@ export default function TodaysPulseClient() {
     setEditPulse(null);
   };
 
-  const minHeight = modalOpen ? '1400px' : 'auto';
-
   return (
-    <div className="space-y-6 relative" style={{ minHeight }}>
+    <div className="space-y-6 relative">
 
       {/* ── Page Header ── */}
       <div className="flex flex-wrap items-start justify-between gap-3">
