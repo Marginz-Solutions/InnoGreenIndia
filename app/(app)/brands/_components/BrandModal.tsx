@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, Info, Tag, Users, Settings, Phone, Mail, X } from 'lucide-react';
+import { Image as ImageIcon, Info, Tag, Users, Settings, Phone, Mail, X } from 'lucide-react';
+import Image from 'next/image';
 
 import { Modal } from '@/components/website-customization/shared/Modal';
 import { FormField } from '@/components/website-customization/form/FormField';
@@ -10,7 +11,9 @@ import { Textarea } from '@/components/website-customization/form/TextArea';
 import { Toggle } from '@/components/website-customization/shared/Toggle';
 import { TagInput } from '@/components/website-customization/products/Taginput';
 import ErrorBanner from '@/components/ErrorBanner';
-import type { Brand, Category } from '@/components/website-customization/types/common.types';
+
+import type { Brand, Category } from '@/lib/global.types';
+import { FormState } from '../types';
 
 interface Props {
   open: boolean;
@@ -20,30 +23,6 @@ interface Props {
   categories: Category[];
   saving: boolean;
   error: any;
-}
-
-interface FormState {
-  name: string;
-  description: string;
-  websiteUrl: string;
-  tags: string[];
-  categoryIds: string[];
-  isActive: boolean;
-  contact: {
-    name: string;
-    email: string;
-    phoneNo: string;
-    whatsapp: string;
-    addressLine1: string;
-    addressLine2: string;
-    city: string;
-    state: string;
-    pincode: string;
-  };
-  logoFile: File | null;
-  imageFile: File | null;
-  logoPreview: string | null;
-  imagePreview: string | null;
 }
 
 const Section = ({ icon: Icon, label }: { icon: React.ElementType; label: string }) => (
@@ -161,14 +140,14 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
         {error && <ErrorBanner error={typeof error === 'string' ? error : error?.message ?? 'An error occurred'} />}
 
         {/* Media */}
-        <Section icon={Image} label="Media" />
+        <Section icon={ImageIcon} label="Media" />
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Logo" className="input-required" error={getError('logoFile')}>
-            <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden ${
+            <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden relative ${
               hasError('logoFile') ? 'border-red-500' : 'border-[#c5ddc8]'
             }`}>
               {form.logoPreview
-                ? <img src={form.logoPreview} alt="logo" className="h-full w-full object-contain p-2" />
+                ? <Image src={form.logoPreview} alt="logo" fill className="object-contain p-2" />
                 : <span className="text-xs text-[#61756a] font-medium text-center px-2">Logo (PNG/JPG/WEBP/SVG)</span>
               }
               <input ref={logoRef} type="file" name="logo" accept="image/png,image/jpeg,image/webp,image/svg+xml"
@@ -190,11 +169,11 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
                 </button>
               )}
 
-              <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden ${
+              <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl bg-[#f7fcf8] cursor-pointer hover:border-[#1f7a36] hover:bg-[#edf8ee] transition-colors h-28 overflow-hidden relative ${
                 hasError('imageFile') ? 'border-red-500' : 'border-[#c5ddc8]'
               }`}>
                 {form.imagePreview
-                  ? <img src={form.imagePreview} alt="banner" className="h-full w-full object-contain p-2" />
+                  ? <Image src={form.imagePreview} alt="banner" fill className="object-contain p-2" />
                   : <span className="text-xs text-[#61756a] font-medium text-center px-2">Banner / hero image</span>
                 }
                 <input ref={imageRef} type="file" name="image" accept="image/png,image/jpeg,image/webp,image/svg+xml"
@@ -221,7 +200,7 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
 
         {/* Tags */}
         <Section icon={Tag} label="Tags" />
-        <FormField label="Tags" error={getError('tags')}>
+        <FormField error={getError('tags')}>
           <TagInput value={form.tags} onChange={(v) => { update('tags', v); setFieldErrors(p => ({ ...p, tags: '' })); }} 
             placeholder="Type tag & press Enter…" />
         </FormField>
@@ -278,29 +257,29 @@ export function BrandModal({ open, onClose, onSave, editBrand, categories, savin
         <FormField label="Email" error={getError('contact.email')}>
           <div className="relative">
             <Mail size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#61756a]" />
-            <Input value={form.contact.email} onChange={e => { updateContact('email', e.target.value); setFieldErrors(p => ({ ...p, 'contact.email': '' })); }}
+            <Input value={form.contact.email!} onChange={e => { updateContact('email', e.target.value); setFieldErrors(p => ({ ...p, 'contact.email': '' })); }}
               type="email" placeholder="contact@brand.com" className={`pl-9 ${hasError('contact.email') ? 'border-red-500' : ''}`} />
           </div>
         </FormField>
         <FormField label="Address Line 1" error={getError('contact.addressLine1')}>
-          <Input value={form.contact.addressLine1} onChange={e => { updateContact('addressLine1', e.target.value); setFieldErrors(p => ({ ...p, 'contact.addressLine1': '' })); }} 
+          <Input value={form.contact.addressLine1!} onChange={e => { updateContact('addressLine1', e.target.value); setFieldErrors(p => ({ ...p, 'contact.addressLine1': '' })); }} 
             placeholder="Street / locality" className={hasError('contact.addressLine1') ? 'border-red-500' : ''} />
         </FormField>
         <FormField label="Address Line 2" error={getError('contact.addressLine2')}>
-          <Input value={form.contact.addressLine2} onChange={e => { updateContact('addressLine2', e.target.value); setFieldErrors(p => ({ ...p, 'contact.addressLine2': '' })); }} 
+          <Input value={form.contact.addressLine2!} onChange={e => { updateContact('addressLine2', e.target.value); setFieldErrors(p => ({ ...p, 'contact.addressLine2': '' })); }} 
             placeholder="Area / landmark" className={hasError('contact.addressLine2') ? 'border-red-500' : ''} />
         </FormField>
         <div className="grid grid-cols-3 gap-3">
           <FormField label="City" error={getError('contact.city')}>
-            <Input value={form.contact.city} onChange={e => { updateContact('city', e.target.value); setFieldErrors(p => ({ ...p, 'contact.city': '' })); }} 
+            <Input value={form.contact.city!} onChange={e => { updateContact('city', e.target.value); setFieldErrors(p => ({ ...p, 'contact.city': '' })); }} 
               placeholder="City" className={hasError('contact.city') ? 'border-red-500' : ''} />
           </FormField>
           <FormField label="State" error={getError('contact.state')}>
-            <Input value={form.contact.state} onChange={e => { updateContact('state', e.target.value); setFieldErrors(p => ({ ...p, 'contact.state': '' })); }} 
+            <Input value={form.contact.state!} onChange={e => { updateContact('state', e.target.value); setFieldErrors(p => ({ ...p, 'contact.state': '' })); }} 
               placeholder="State" className={hasError('contact.state') ? 'border-red-500' : ''} />
           </FormField>
           <FormField label="Pincode" error={getError('contact.pincode')}>
-            <Input value={form.contact.pincode} onChange={e => { updateContact('pincode', e.target.value); setFieldErrors(p => ({ ...p, 'contact.pincode': '' })); }} 
+            <Input value={form.contact.pincode!} onChange={e => { updateContact('pincode', e.target.value); setFieldErrors(p => ({ ...p, 'contact.pincode': '' })); }} 
               placeholder="600001" className={hasError('contact.pincode') ? 'border-red-500' : ''} maxLength={6} />
           </FormField>
         </div>
