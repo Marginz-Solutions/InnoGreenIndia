@@ -59,7 +59,6 @@ body::after {
 
 body>* {
   position: relative;
-  z-index: 1
 }
 
 a {
@@ -73,9 +72,8 @@ a {
   padding: 16px 24px;
   position: sticky;
   top: 0;
-  z-index: 20;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
-  border-bottom: 1px solid rgba(255, 255, 255, .1)
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
 }
 
 .topbar .row {
@@ -139,9 +137,9 @@ a {
 }
 
 .container {
-  max-width: 1380px;
+  max-width: calc(100% - 20px);
   margin: 0 auto;
-  padding: 24px
+  padding: 24px;
 }
 
 .hero {
@@ -484,6 +482,11 @@ tbody tr:hover {
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 18px
+}
+
+.input-required::after {
+  content: ' *';
+  color: oklch(70.4% 0.191 22.216);
 }
 
 @media (max-width:1100px) {

@@ -67,11 +67,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = !!session;
 
   return (
-    <AuthContext.Provider
+    <AuthContext
       value={{ isAuthenticated, isLoading, session, login, logout }}
     >
       {children}
-    </AuthContext.Provider>
+    </AuthContext>
   );
 }
 
