@@ -7,6 +7,7 @@ import {
   ChevronLeft, ChevronRight, RefreshCw,
 } from "lucide-react";
 import type { Dealer } from "./types";
+import { api } from "@/lib/axiosInstance";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -229,7 +230,7 @@ export default function ReviewedDealersClient({
   const [meta, setMeta] = useState<Meta>(initialMeta);
   const [selected, setSelected] = useState<Dealer | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Dealer | null>(null);
-  const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [filters, setFilters] = useState<Filters>({ ...emptyFilters, volume: localStorage.getItem("reviewed_volume_filter") as Filters["volume"] || "all",category: localStorage.getItem("reviewed_category_filter") || "all" } );
   const [view, setView] = useState<ViewMode>("table");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -252,48 +253,67 @@ export default function ReviewedDealersClient({
 
   // ── Fetch categories on mount ──────────────────────────────────────────────
   useEffect(() => {
-    async function loadCategories() {
+    const loadCategories = async () => {
       try {
-        const res = await fetch("/api/v1/categories");
-        const json = await res.json();
-        // Support both { data: Category[] } and Category[] response shapes
-        const list: Category[] = Array.isArray(json) ? json : (json.data ?? []);
-        setCategories(list.sort((a, b) => a.name.localeCompare(b.name)));
-      } catch (err) {
-        console.error("Failed to load categories:", err);
+        const res = await api.get("/categories");
+
+        // Support both shapes: { data: Category[] } OR Category[]
+        const list: Category[] = Array.isArray(res)
+          ? res
+          : (res.data ?? []);
+
+        setCategories(
+          list.sort((a, b) => a.name.localeCompare(b.name))
+        );
+      } catch (err: any) {
+        console.error("Failed to load categories:", err.message);
+
+        if (err.details) {
+          console.error("Details:", err.details);
+        }
       } finally {
         setCategoriesLoading(false);
       }
-    }
+    };
+
     loadCategories();
   }, []);
 
   // ── Fetch dealers ──────────────────────────────────────────────────────────
 
-  const fetchData = useCallback(async (
-    currentFilters: Filters,
-    currentPage: number,
-  ) => {
+const fetchData = useCallback(
+  async (currentFilters: Filters, currentPage: number) => {
     setLoading(true);
+
     try {
-      const params = new URLSearchParams();
-      params.set("page", String(currentPage));
-      params.set("limit", "10");
+      const res = await api.get("/dealers/reviewed", {
+        params: {
+          page: currentPage,
+          limit: 10,
+          ...(currentFilters.query && { search: currentFilters.query }),
+          ...(currentFilters.district !== "all" && { district: currentFilters.district }),
+          ...(currentFilters.category !== "all" && { categoryId: currentFilters.category }),
+          ...(currentFilters.volume !== "all" && { volume: currentFilters.volume }),
+        },
+      });
 
-      if (currentFilters.query) params.set("search", currentFilters.query);
-      if (currentFilters.district !== "all") params.set("district", currentFilters.district);
-      if (currentFilters.category !== "all") params.set("categoryId", currentFilters.category);
-      if (currentFilters.volume !== "all") params.set("volume", currentFilters.volume);
+      // res is already response.data
+      const payload: any = res;
+      setDealers(payload.data);
+      setFetchedDealers(payload.data);
+      setMeta(payload.meta);
+    } catch (error: any) {
+      console.error("Failed to fetch reviewed dealers:", error.message);
 
-      const res = await fetch(`/api/v1/dealers/reviewed?${params.toString()}`);
-      const json = await res.json();
-      setDealers(json.data);
-      setFetchedDealers(json.data);
-      setMeta(json.meta);
+      if (error.details) {
+        console.error("Details:", error.details);
+      }
     } finally {
       setLoading(false);
     }
-  }, [setFetchedDealers]);
+  },
+  [setFetchedDealers]
+);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
 
@@ -330,31 +350,34 @@ export default function ReviewedDealersClient({
     setDeleteTarget(dealer);
   };
 
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeletingId(deleteTarget.id);
+ const confirmDelete = async () => {
+  if (!deleteTarget) return;
 
-    const res = await fetch("/api/v1/dealers/reviewed", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: deleteTarget.id }),
+  setDeletingId(deleteTarget.id);
+
+  try {
+    await api.delete("/dealers/reviewed", {
+      data: { id: deleteTarget.id }, // 👈 important for DELETE in axios
     });
 
-    if (!res.ok) {
-      const { error } = await res.json();
-      console.error("Delete failed:", error);
-      setDeletingId(null);
-      return;
-    }
-
+    // update UI after successful delete
     setDealers((prev) => prev.filter((d) => d.id !== deleteTarget.id));
     setFetchedDealers((prev) => prev.filter((d) => d.id !== deleteTarget.id));
     setMeta((prev) => ({ ...prev, total: prev.total - 1 }));
-    setDeletingId(null);
-    setDeleteTarget(null);
-    startTransition(() => router.refresh());
-  };
 
+    setDeleteTarget(null);
+
+    startTransition(() => router.refresh());
+  } catch (error: any) {
+    console.error("Delete failed:", error.message);
+
+    if (error.details) {
+      console.error("Details:", error.details);
+    }
+  } finally {
+    setDeletingId(null);
+  }
+};
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -427,7 +450,7 @@ export default function ReviewedDealersClient({
           {/* ── Category filter — fetched from API ── */}
           <select
             value={filters.category}
-            onChange={(e) => setFilter("category", e.target.value)}
+            onChange={(e) => {setFilter("category", e.target.value); localStorage.setItem("reviewed_category_filter", e.target.value);}}
             disabled={categoriesLoading}
             className={`px-3 py-1.5 border border-[#d1dfd5] rounded-lg text-xs font-semibold
               bg-white text-[#61756a] focus:outline-none focus:border-[#2d5a27] transition-all cursor-pointer
@@ -453,9 +476,9 @@ export default function ReviewedDealersClient({
 
           {/* Volume pills */}
           <div className="flex items-center gap-1.5 border-l border-[#e2ece3] pl-2">
-            <FilterPill label="All" active={filters.volume === "all"} onClick={() => setFilter("volume", "all")} />
-            <FilterPill label="Vol. Provided" active={filters.volume === "true"} onClick={() => setFilter("volume", "true")} />
-            <FilterPill label="No Volume" active={filters.volume === "false"} onClick={() => setFilter("volume", "false")} />
+            <FilterPill label="All" active={filters.volume === "all"} onClick={() => { setFilter("volume", "all"); localStorage.setItem("reviewed_volume_filter", "all"); }} />
+            <FilterPill label="Vol. Provided" active={filters.volume === "true"} onClick={() => { setFilter("volume", "true"); localStorage.setItem("reviewed_volume_filter", "true"); }} />
+            <FilterPill label="No Volume" active={filters.volume === "false"} onClick={() => { setFilter("volume", "false"); localStorage.setItem("reviewed_volume_filter", "false"); }} />
           </div>
 
           {/* Clear */}

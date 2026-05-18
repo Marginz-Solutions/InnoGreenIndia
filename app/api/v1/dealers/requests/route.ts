@@ -26,10 +26,10 @@ export async function GET(request: NextRequest) {
         {
           AND: [
             { status: "closed" },
-            { submittedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
+
           ],
         },
-      ],
+      ]
     };
 
 const where: Prisma.DealerWhereInput = {

@@ -5,6 +5,7 @@ import EnquiriesClient from "./EnquiriesClient";
 import ReviewedDealersClient from "./ReviewedClient";
 import type { Enquiry, Dealer } from "./types";
 import { Breadcrumb } from "@/components/website-customization/shared/Breadcrumb";
+import { api } from "@/lib/axiosInstance";
 
 type Tab = "dashboard" | "enquiries" | "reviewed";
 
@@ -317,22 +318,26 @@ export default function DealersHubClient({
     enquiries,
     dealers,
 }: {
-    enquiries: {data: Enquiry[],meta:{
-        total:number,
-        page:number,
-        limit:number,
-        totalPages:number,
-        hasNextPage: boolean,
-        hasPrevPage: boolean,
-    }};
-    dealers:{data: Dealer[],meta:{
-        total:number,
-        page:number,
-        limit:number,
-        totalPages:number,
-        hasNextPage: boolean,
-        hasPrevPage: boolean,
-    }};
+    enquiries: {
+        data: Enquiry[], meta: {
+            total: number,
+            page: number,
+            limit: number,
+            totalPages: number,
+            hasNextPage: boolean,
+            hasPrevPage: boolean,
+        }
+    };
+    dealers: {
+        data: Dealer[], meta: {
+            total: number,
+            page: number,
+            limit: number,
+            totalPages: number,
+            hasNextPage: boolean,
+            hasPrevPage: boolean,
+        }
+    };
 }) {
     console.log(enquiries, dealers);
     const [tab, setTab] = useState<Tab>("enquiries");
@@ -353,33 +358,46 @@ export default function DealersHubClient({
     }, [])
 
     const getCategories = async () => {
-        const res = await fetch("/api/v1/categories", { cache: "no-store" });
-        const data = await res.json();
-        setCategories(data.data);
-    }
+        try {
+            const data = await api.get("/categories");
+
+            setCategories(data.data);
+        } catch (error: any) {
+            console.error(error.message);
+
+            if (error.details) {
+                console.error("Details:", error.details);
+            }
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         setError(null);
-        console.log("Submitting form:", form);
-        const res = await fetch("/api/v1/dealers/requests", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...form, status: "new" }),
-        });
 
-        const result = await res.json();
-        setFetchedEnquiries((prev) => [...prev, result.data]);
-        setSaving(false);
+        try {
+            await api.post("/dealers/requests", {
+                ...form,
+                status: "new",
+            });
 
-        if (!res.ok) {
-            setError(result.error ?? "Something went wrong");
-            return;
+            // 🔥 Refetch latest data from DB (like cache: "no-store")
+            const refreshed = await api.get("/dealers/requests");
+
+            setFetchedEnquiries(refreshed.data ?? refreshed);
+
+            setModalOpen(false);
+            setForm(emptyForm);
+        } catch (error: any) {
+            setError(error.message || "Something went wrong");
+
+            if (error.details) {
+                console.error("Details:", error.details);
+            }
+        } finally {
+            setSaving(false);
         }
-
-        setModalOpen(false);
-        setForm(emptyForm);
     };
 
     const closeModal = () => {

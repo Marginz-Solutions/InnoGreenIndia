@@ -6,6 +6,7 @@ import {
     CheckCircle, XCircle, Loader2, ChevronRight,
 } from "lucide-react";
 import type { SmartEnquiryResponse } from "./page";
+import { api } from "@/lib/axiosInstance";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -102,21 +103,19 @@ export default function SmartEnquiryDrawer({
         setError(null);
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/smart-enquiries`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: enquiry.id, status }),
+            await api.patch("/smart-enquiries", {
+                id: enquiry.id,
+                status,
             });
-
-            if (!res.ok) {
-                const json = await res.json().catch(() => ({}));
-                throw new Error(json?.error ?? `Request failed with status ${res.status}`);
-            }
 
             onStatusChange?.(enquiry.id, status);
             onClose();
         } catch (err: any) {
-            setError(err?.message ?? "Something went wrong. Please try again.");
+            setError(err?.message || "Something went wrong. Please try again.");
+
+            if (err?.details) {
+                console.error("Details:", err.details);
+            }
         } finally {
             setActionLoading(null);
         }

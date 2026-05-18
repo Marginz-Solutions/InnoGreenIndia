@@ -20,6 +20,7 @@ import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Breadcrumb } from "@/components/website-customization/shared/Breadcrumb";
+import { api } from "@/lib/axiosInstance";
 
 const MapContainer = dynamic(
   () => import("react-leaflet").then((m) => m.MapContainer),
@@ -87,10 +88,10 @@ interface ContactData {
   lng: number;
   altitude: string;
   accuracy: string;
-  operating_hours: string;
+  operatingHours: string;
   timezone: string;
-  commander_name: string;
-  commander_contact: string;
+  commanderName: string;
+  commanderContact: string;
 }
 
 /* ─── Required fields ────────────────────────────────── */
@@ -101,10 +102,10 @@ const REQUIRED_FIELDS: (keyof ContactData)[] = [
   "city",
   "state",
   "pincode",
-  "operating_hours",
+  "operatingHours",
   "timezone",
-  "commander_name",
-  "commander_contact",
+  "commanderName",
+  "commanderContact",
 ];
 
 /* ─── Sub-components ─────────────────────────────────── */
@@ -251,39 +252,46 @@ export default function AdminContactClient({ contactData }: { contactData: Conta
     setDraft((prev) => ({ ...prev, lat, lng }));
   }, []);
 
-  const handleSave = async () => {
-    // Validate required fields
-    const newErrors: Partial<Record<keyof ContactData, boolean>> = {};
-    let hasError = false;
+ const handleSave = async () => {
+  // Validate required fields
+  const newErrors: Partial<Record<keyof ContactData, boolean>> = {};
+  let hasError = false;
 
-    for (const field of REQUIRED_FIELDS) {
-      const val = String(draft[field] ?? "").trim();
-      if (!val) {
-        newErrors[field] = true;
-        hasError = true;
-      }
+  for (const field of REQUIRED_FIELDS) {
+    const val = String(draft[field] ?? "").trim();
+    if (!val) {
+      newErrors[field] = true;
+      hasError = true;
     }
+  }
 
-    if (hasError) {
-      setErrors(newErrors);
-      return;
-    }
+  if (hasError) {
+    setErrors(newErrors);
+    return;
+  }
 
-    setErrors({});
-    setData({ ...draft });
+  setErrors({});
+  setData({ ...draft });
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/contact/admin`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(draft),
-    });
-    const result = await res.json();
-    console.log(result);
+  try {
+    const result = await api.put("/contact/admin", draft);
+
+    console.log(result); // already response.data
 
     setIsEditing(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
-  };
+  } catch (error: any) {
+    console.error(error.message);
+
+    // Optional: show error to UI
+    // toast.error(error.message);
+
+    if (error.details) {
+      console.error("Details:", error.details);
+    }
+  }
+};
 
   const handleCancel = () => {
     setDraft(data);
@@ -409,7 +417,7 @@ export default function AdminContactClient({ contactData }: { contactData: Conta
             <div className="bg-white border border-black/[0.08] rounded-[18px] p-6">
               <SectionHeader icon={Clock} label="Operational Details" />
               <div className="grid grid-cols-2 gap-[18px]">
-                <Field label="Operating Hours" name="operating_hours" value={d?.operating_hours} isEditing={isEditing} onChange={handleChange} wide error={errors.operating_hours} />
+                <Field label="Operating Hours" name="operating_hours" value={d?.operatingHours} isEditing={isEditing} onChange={handleChange} wide error={errors.operatingHours} />
                 <Field label="Timezone" name="timezone" value={d?.timezone} isEditing={isEditing} onChange={handleChange} wide error={errors.timezone} />
               </div>
             </div>
@@ -418,8 +426,8 @@ export default function AdminContactClient({ contactData }: { contactData: Conta
             <div className="bg-white border border-black/[0.08] rounded-[18px] p-6">
               <SectionHeader icon={Users} label="Command Personnel" />
               <div className="grid grid-cols-2 gap-[18px]">
-                <Field label="Commander Name" name="commander_name" value={d?.commander_name} isEditing={isEditing} onChange={handleChange} wide error={errors.commander_name} />
-                <Field label="Commander Contact" name="commander_contact" value={d?.commander_contact} isEditing={isEditing} onChange={handleChange} mono error={errors.commander_contact} />
+                <Field label="Commander Name" name="commander_name" value={d?.commanderName} isEditing={isEditing} onChange={handleChange} wide error={errors.commanderName} />
+                <Field label="Commander Contact" name="commander_contact" value={d?.commanderContact} isEditing={isEditing} onChange={handleChange} mono error={errors.commanderContact} />
               </div>
             </div>
 

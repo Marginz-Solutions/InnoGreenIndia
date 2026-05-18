@@ -11,6 +11,7 @@ import {
 import type { SmartEnquiryResponse } from "./page";
 import { GridCardSkeleton, TableRowSkeleton } from "./loading";
 import SmartEnquiryDrawer from "./SmartEnquiryDrawer";
+import { api } from "@/lib/axiosInstance";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -405,52 +406,76 @@ export default function SmartEnquiryClient({ data: initialData }: { data: SmartE
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   // ── Fetch categories on mount ──────────────────────────────────────────────
-  useEffect(() => {
-    async function loadCategories() {
-      try {
-        const res = await fetch("/api/v1/categories");
-        const json = await res.json();
-        // Support { data: Category[] } or Category[] response shapes
-        setCategories(Array.isArray(json) ? json : (json.data ?? []));
-      } catch (err) {
-        console.error("Failed to load categories:", err);
-      } finally {
-        setCategoriesLoading(false);
-      }
-    }
-    loadCategories();
-  }, []);
+ useEffect(() => {
+  const loadCategories = async () => {
+    try {
+      const res = await api.get("/categories");
 
+      // res is already response.data
+      setCategories(
+        Array.isArray(res) ? res : (res.data ?? [])
+      );
+    } catch (err: any) {
+      console.error("Failed to load categories:", err.message);
+
+      if (err.details) {
+        console.error("Details:", err.details);
+      }
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  loadCategories();
+}, []);
   // ── Fetch enquiries ────────────────────────────────────────────────────────
 
-  const fetchData = useCallback(async (
+const fetchData = useCallback(
+  async (
     currentSearch: string,
     currentPage: number,
     currentFilters: typeof filters,
   ) => {
     setLoading(true);
     console.log("fetchData called with filters:", currentFilters);
+
     try {
-      const params = new URLSearchParams();
-      params.set("page", String(currentPage));
-      params.set("limit", "20");
-      if (currentSearch) params.set("search", currentSearch);
-      if (currentFilters.status) params.set("status", currentFilters.status);
-      if (currentFilters.senderType) params.set("senderType", currentFilters.senderType);
-      if (currentFilters.district) params.set("district", currentFilters.district);
-      if (currentFilters.category) params.set("category", currentFilters.category); // ← new
+      // build params object for axios
+      const paramsObj: Record<string, any> = {
+        page: currentPage,
+        limit: 20,
+        ...(currentSearch && { search: currentSearch }),
+        ...(currentFilters.status && { status: currentFilters.status }),
+        ...(currentFilters.senderType && { senderType: currentFilters.senderType }),
+        ...(currentFilters.district && { district: currentFilters.district }),
+        ...(currentFilters.category && { category: currentFilters.category }),
+      };
 
-      // Sync URL
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      // keep URL in sync (still using URLSearchParams for browser URL)
+      const urlParams = new URLSearchParams(paramsObj as any);
+      router.replace(`${pathname}?${urlParams.toString()}`, { scroll: false });
 
-      const res = await fetch(`/api/v1/smart-enquiries?${params.toString()}`);
-      const json = await res.json();
-      setEnquiries(json.data);
-      setMeta(json.meta);
+      // axios call
+      const res = await api.get("/api/v1/smart-enquiries", {
+        params: paramsObj,
+      });
+
+      // res is already response.data
+      const payload: any = res;
+      setEnquiries(payload.data);
+      setMeta(payload.meta);
+    } catch (error: any) {
+      console.error("Failed to fetch smart enquiries:", error.message);
+
+      if (error.details) {
+        console.error("Details:", error.details);
+      }
     } finally {
       setLoading(false);
     }
-  }, [pathname, router]);
+  },
+  [pathname, router]
+);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
