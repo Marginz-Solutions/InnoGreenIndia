@@ -50,7 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <AuthGuard>
       <div className="flex min-h-screen bg-[#f8fbf8]">
-        <div className="hidden lg:block">
+        <div className="hidden lg:block sticky top-0 h-screen">
           <Sidebar
             active={activeSection}
             onChange={handleSectionChange}
@@ -67,7 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
 
         <main className="flex-1 flex flex-col min-w-0 min-h-screen overflow-x-hidden">
-          <div className="p-4 lg:p-8 w-full max-w-[1400px] mx-auto">
+          <div className="p-2 lg:p-4 w-full mx-auto">
             <PageHeader onMenuClick={() => setMobileSidebarOpen(true)} />
             
             <section className="card" style={{ minHeight: 'calc(100vh - 200px)' }}>
