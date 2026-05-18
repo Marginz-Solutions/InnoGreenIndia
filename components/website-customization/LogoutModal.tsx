@@ -29,6 +29,7 @@ const LogoutModal = ({ open, onClose }: Props) => {
     
     return (
         <Modal open={open} onClose={onClose} title='Logout'>
+            <p>Are you sure you want's to logging out... If you logged out all the works under draft are gone.</p>
             <div className="flex gap-3 pt-1">
                 <button 
                     type="button" 
