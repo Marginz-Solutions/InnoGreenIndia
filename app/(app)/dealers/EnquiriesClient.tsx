@@ -297,7 +297,7 @@ export default function EnquiriesClient({
     );
 
     try {
-      const result = await api.patch("/api/v1/dealers/requests", {
+      const result = await api.patch("/dealers/requests", {
         id,
         status,
       });
