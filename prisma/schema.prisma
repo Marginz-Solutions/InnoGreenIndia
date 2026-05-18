@@ -64,6 +64,7 @@ model Brand {
   brandCategories BrandCategory[]
   contacts        Contact?        @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: NoAction)
   products        Product[]
+  smartEnquiries SmartEnquiry[]
 
   @@index([isActive], map: "index_brands_is_active")
   @@index([slug], map: "index_brands_slug")
@@ -80,6 +81,8 @@ model Category {
   brandCategories BrandCategory[]
   dealers         Dealer[]
   products        Product[]
+  smartEnquiries SmartEnquiry[]
+
 
   @@index([name], map: "index_categories_name")
   @@map("categories")
@@ -146,4 +149,27 @@ model Product {
   categories       Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@map("products")
+}
+
+
+model SmartEnquiry {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  senderType String    @map("sender_type")
+  categoryId String    @map("category_id") @db.Uuid
+  brand      String    @db.Uuid
+  district   String
+  need       String
+  mobileNo   String    @map("mobile_no")
+  crop       String?
+  cropStage  String?   @map("crop_stage")
+  message    String?
+  status     String?   @default("new")
+  createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  reviewedAt  DateTime? @default(now()) @map("reviewed_at") @db.Timestamptz(6)
+  closedAt  DateTime? @default(now()) @map("closed_at") @db.Timestamptz(6)
+
+  brands     Brand?    @relation(fields: [brand], references: [id], onDelete: Cascade)
+  categories Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@map("smart_enquiries")
 }

@@ -317,13 +317,27 @@ export default function DealersHubClient({
     enquiries,
     dealers,
 }: {
-    enquiries: Enquiry[];
-    dealers: Dealer[];
+    enquiries: {data: Enquiry[],meta:{
+        total:number,
+        page:number,
+        limit:number,
+        totalPages:number,
+        hasNextPage: boolean,
+        hasPrevPage: boolean,
+    }};
+    dealers:{data: Dealer[],meta:{
+        total:number,
+        page:number,
+        limit:number,
+        totalPages:number,
+        hasNextPage: boolean,
+        hasPrevPage: boolean,
+    }};
 }) {
     console.log(enquiries, dealers);
     const [tab, setTab] = useState<Tab>("enquiries");
-    const [fetchedEnquiries, setFetchedEnquiries] = useState<Enquiry[]>(enquiries);
-    const [fetchedDealers, setFetchedDealers] = useState<Dealer[]>(dealers);
+    const [fetchedEnquiries, setFetchedEnquiries] = useState<Enquiry[]>(enquiries.data);
+    const [fetchedDealers, setFetchedDealers] = useState<Dealer[]>(dealers.data);
     const [modalOpen, setModalOpen] = useState(false);
     const [form, setForm] = useState<DealerForm>(emptyForm);
     const [saving, setSaving] = useState(false);
@@ -381,7 +395,7 @@ export default function DealersHubClient({
             label: "New Enquiries",
             badge: fetchedEnquiries.filter((e) => e.status === "new").length,
         },
-        { key: "reviewed", label: "Reviewed Dealers", badge: fetchedDealers.length },
+        { key: "reviewed", label: "Reviewed Dealers", badge: fetchedDealers?.length },
     ];
 
     return (
@@ -437,6 +451,7 @@ export default function DealersHubClient({
             {tab === "enquiries" && (
                 <EnquiriesClient
                     enquiries={fetchedEnquiries}
+                    initialMeta={enquiries.meta}
                     setEnquiries={setFetchedEnquiries}
                     setFetchedDealers={setFetchedDealers}
                 />
@@ -445,6 +460,7 @@ export default function DealersHubClient({
                 <ReviewedDealersClient
                     dealers={fetchedDealers}
                     setFetchedDealers={setFetchedDealers}
+                    initialMeta={dealers.meta}
                 />
             )}
 

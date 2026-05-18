@@ -4,7 +4,7 @@ export type status = "new" | "reviewed" | "closed";
 
 
 export type Dealer = {
-  id: number;
+  id: string;
   firmName: string;
   gstNumber: string;
   mobileNo: string;
@@ -14,14 +14,14 @@ export type Dealer = {
   submittedAt: string;
   reviewedAt: string;
   categories: {
-    id: number;
+    id: string;
     name: string;
   };
   status: status;
 };
 
 export type Enquiry = {
-  id: number;
+  id: string;
   firmName: string;
   gstNumber: string;
   mobileNo: string;
@@ -29,7 +29,7 @@ export type Enquiry = {
   categoryInterest: string;
   monthlyVolume?: string;
   categories: {
-    id: number;
+    id: string;
     name: string;
   };
   submittedAt: string;
