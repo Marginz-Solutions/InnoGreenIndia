@@ -1,10 +1,10 @@
 {
-  "name": "igim-planning-portal",
+  "name": "igim-admin-panel",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:push": "npx prisma db push",

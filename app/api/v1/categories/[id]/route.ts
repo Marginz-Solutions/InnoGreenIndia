@@ -7,7 +7,7 @@ import { generateSlug } from '@/lib/utils';
 type RouteContext = { params: Promise<{ id: string }> };
 
 /**
- * @method PATCH /api/v1/admin/categories/[id]
+ * @method PATCH /api/v1/categories/[id]
  * @description Update an existing category with the given ID
  * @requires { name: string } - Name of the category to be updated
  * @param {string} id - ID of the category to be updated
@@ -57,7 +57,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 }
 
 /**
- * @method DELETE /api/v1/admin/categories/[id]
+ * @method DELETE /api/v1/categories/[id]
  * @description Delete an existing category with the given id
  * @param {string} id - id of the category to be deleted
  */

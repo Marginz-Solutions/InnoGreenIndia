@@ -5,7 +5,7 @@ import type { Category } from '@/lib/global.types';
 
 export default async function CategoriesPage() {
   const { data: categories } = await fetchAdminApi<{ data: Category[] }>(
-    '/api/v1/categories',
+    '/categories',
   );
 
   return (

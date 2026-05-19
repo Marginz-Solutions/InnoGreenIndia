@@ -1,41 +1,66 @@
-import ProductsClient from "./ProductsClient";
+import ProductsClient
+  from "./ProductsClient";
+
+import type {
+  Product,
+  Brand,
+  Category,
+} from "@/lib/global.types";
+
+import {
+  fetchAdminApi,
+} from "@/hooks/admin-server-fetch";
+import { ProductsPageResponse } from "./types";
 
 export default async function Page() {
-  const [productsRes, brandsRes, categoriesRes] =
-    await Promise.all([
-      fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/products`,
-        {
-          cache: "no-store",
-        }
-      ),
+  const [
+    productsPayload,
+    brandsPayload,
+    categoriesPayload,
+  ] = await Promise.all([
+    fetchAdminApi<ProductsPageResponse>(
+      "/products?page=1&limit=20"
+    ),
 
-      fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/brands`,
-        {
-          cache: "no-store",
-        }
-      ),
+    fetchAdminApi<{
+      data: Brand[];
+    }>("/brands"),
 
-      fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/categories`,
-        {
-          cache: "no-store",
-        }
-      ),
-    ]);
+    fetchAdminApi<{
+      data: Category[];
+    }>("/categories"),
+  ]);
 
-  const { data: products } = await productsRes.json();
+  const {
+    data: products,
+    pagination,
+  } = productsPayload;
 
-  const { data: brands } = await brandsRes.json();
+  const {
+    data: brands,
+  } = brandsPayload;
 
-  const { data: categories } = await categoriesRes.json();
+  const {
+    data: categories,
+  } = categoriesPayload;
 
   return (
     <ProductsClient
-      initialProducts={products ?? []}
-      brands={brands ?? []}
-      categories={categories ?? []}
+      initialProducts={
+        products ?? []
+      }
+
+      initialPagination={
+        pagination
+      }
+
+      brands={
+        brands ?? []
+      }
+
+      categories={
+        categories ?? []
+      }
     />
   );
 }

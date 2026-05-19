@@ -9,7 +9,7 @@ import { rollbackUploads, uploadImage, extractStoragePath } from "../_upload";
 type RouteContext = { params: Promise<{ id: string }> };
 
 /**
- * @method PATCH /api/v1/admin/brands/[id]
+ * @method PATCH /api/v1/brands/[id]
  * @description Update an existing brand with the given ID
  * @param {string} id - ID of the brand to be updated
  */
@@ -134,7 +134,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             return tx.brand.findUniqueOrThrow({
                 where: { id },
                 include: {
-                    contact: {
+                    contacts: {
                         select: {
                             id: true, name: true, email: true, phoneNo: true, whatsapp: true,
                             addressLine1: true, addressLine2: true, city: true, state: true, pincode: true,
@@ -171,7 +171,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 }
 
 /**
- * @method DELETE /api/v1/admin/brands/[id]
+ * @method DELETE /api/v1/brands/[id]
  * @description Delete an existing brand with the given id
  * @param {string} id - id of the brand to be deleted
  */
